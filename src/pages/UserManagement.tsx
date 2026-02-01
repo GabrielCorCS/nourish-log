@@ -101,7 +101,7 @@ export function UserManagement() {
         <Card>
           <CardContent className="py-12">
             <EmptyState
-              icon={User}
+              icon={<User className="h-8 w-8" aria-hidden="true" />}
               title="Access Denied"
               description="You need admin privileges to manage users."
             />
@@ -128,15 +128,13 @@ export function UserManagement() {
         <CardContent>
           {users?.length === 0 ? (
             <EmptyState
-              icon={User}
+              icon={<User className="h-8 w-8" aria-hidden="true" />}
               title="No users yet"
               description="Add your first user to get started."
-              action={
-                <Button onClick={() => setIsAddModalOpen(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add User
-                </Button>
-              }
+              action={{
+                label: 'Add User',
+                onClick: () => setIsAddModalOpen(true),
+              }}
             />
           ) : (
             <div className="divide-y divide-latte/30">
