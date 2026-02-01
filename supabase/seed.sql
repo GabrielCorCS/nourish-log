@@ -1,7 +1,15 @@
 -- NourishLog Seed Data
 -- Run this after schema.sql in Supabase SQL Editor
 
+-- ============================================
+-- SEED ADMIN USER
+-- ============================================
+INSERT INTO app_users (email, name, avatar_emoji, is_admin) VALUES
+('gabrielcordova.wk@gmail.com', 'Gabriel', '👑', true);
+
+-- ============================================
 -- SEED INGREDIENTS (40 common ingredients)
+-- ============================================
 -- These are default ingredients available to all users
 INSERT INTO ingredients (name, emoji, category, serving_size, serving_unit, calories, protein, carbs, fat, is_default) VALUES
 -- Proteins (10)

@@ -5,6 +5,22 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
+-- APP USERS TABLE (Simple user management)
+-- ============================================
+CREATE TABLE app_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  avatar_emoji TEXT DEFAULT '👤',
+  is_admin BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Index for faster queries
+CREATE INDEX idx_app_users_email ON app_users(email);
+
+-- ============================================
 -- INGREDIENT CATEGORIES ENUM
 -- ============================================
 CREATE TYPE ingredient_category AS ENUM (
@@ -35,7 +51,7 @@ CREATE TYPE meal_type AS ENUM (
 -- ============================================
 CREATE TABLE ingredients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES app_users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   emoji TEXT,
   category ingredient_category NOT NULL,
@@ -60,7 +76,7 @@ CREATE INDEX idx_ingredients_name ON ingredients(name);
 -- ============================================
 CREATE TABLE recipes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   emoji TEXT,
   description TEXT,
@@ -102,7 +118,7 @@ CREATE INDEX idx_recipe_ingredients_ingredient_id ON recipe_ingredients(ingredie
 -- ============================================
 CREATE TABLE food_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   recipe_id UUID REFERENCES recipes(id) ON DELETE SET NULL,
   meal_type meal_type NOT NULL,
   servings DECIMAL(10,2) NOT NULL DEFAULT 1,
@@ -141,7 +157,7 @@ CREATE INDEX idx_food_entry_ingredients_entry_id ON food_entry_ingredients(food_
 -- ============================================
 CREATE TABLE user_settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL UNIQUE REFERENCES app_users(id) ON DELETE CASCADE,
   daily_calorie_goal INTEGER NOT NULL DEFAULT 2000,
   daily_protein_goal INTEGER NOT NULL DEFAULT 150,
   daily_carbs_goal INTEGER NOT NULL DEFAULT 250,
@@ -157,7 +173,7 @@ CREATE TABLE user_settings (
 -- ============================================
 CREATE TABLE user_streaks (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL UNIQUE REFERENCES app_users(id) ON DELETE CASCADE,
   current_streak INTEGER NOT NULL DEFAULT 0,
   longest_streak INTEGER NOT NULL DEFAULT 0,
   last_logged_date DATE,
@@ -177,6 +193,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Apply to all tables with updated_at
+CREATE TRIGGER update_app_users_updated_at
+  BEFORE UPDATE ON app_users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 CREATE TRIGGER update_ingredients_updated_at
   BEFORE UPDATE ON ingredients
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -289,7 +309,7 @@ CREATE TRIGGER trigger_update_streak
   FOR EACH ROW EXECUTE FUNCTION update_user_streak();
 
 -- ============================================
--- CREATE USER SETTINGS ON SIGNUP
+-- CREATE USER SETTINGS ON USER CREATION
 -- ============================================
 CREATE OR REPLACE FUNCTION create_user_settings()
 RETURNS TRIGGER AS $$
@@ -304,130 +324,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_create_user_settings
-  AFTER INSERT ON auth.users
+  AFTER INSERT ON app_users
   FOR EACH ROW EXECUTE FUNCTION create_user_settings();
 
 -- ============================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- NO ROW LEVEL SECURITY (Simple user management)
 -- ============================================
-
--- Enable RLS on all tables
-ALTER TABLE ingredients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE recipe_ingredients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE food_entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE food_entry_ingredients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_streaks ENABLE ROW LEVEL SECURITY;
-
--- Ingredients: Users can see default + their own
-CREATE POLICY "Users can view default and own ingredients"
-  ON ingredients FOR SELECT
-  USING (is_default = true OR auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own ingredients"
-  ON ingredients FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own ingredients"
-  ON ingredients FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own ingredients"
-  ON ingredients FOR DELETE
-  USING (auth.uid() = user_id AND is_default = false);
-
--- Recipes: Users can only see their own
-CREATE POLICY "Users can view own recipes"
-  ON recipes FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own recipes"
-  ON recipes FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own recipes"
-  ON recipes FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own recipes"
-  ON recipes FOR DELETE
-  USING (auth.uid() = user_id);
-
--- Recipe Ingredients: Based on recipe ownership
-CREATE POLICY "Users can view own recipe ingredients"
-  ON recipe_ingredients FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM recipes WHERE recipes.id = recipe_ingredients.recipe_id AND recipes.user_id = auth.uid()
-  ));
-
-CREATE POLICY "Users can insert own recipe ingredients"
-  ON recipe_ingredients FOR INSERT
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM recipes WHERE recipes.id = recipe_ingredients.recipe_id AND recipes.user_id = auth.uid()
-  ));
-
-CREATE POLICY "Users can update own recipe ingredients"
-  ON recipe_ingredients FOR UPDATE
-  USING (EXISTS (
-    SELECT 1 FROM recipes WHERE recipes.id = recipe_ingredients.recipe_id AND recipes.user_id = auth.uid()
-  ));
-
-CREATE POLICY "Users can delete own recipe ingredients"
-  ON recipe_ingredients FOR DELETE
-  USING (EXISTS (
-    SELECT 1 FROM recipes WHERE recipes.id = recipe_ingredients.recipe_id AND recipes.user_id = auth.uid()
-  ));
-
--- Food Entries: Users can only see their own
-CREATE POLICY "Users can view own food entries"
-  ON food_entries FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own food entries"
-  ON food_entries FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own food entries"
-  ON food_entries FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own food entries"
-  ON food_entries FOR DELETE
-  USING (auth.uid() = user_id);
-
--- Food Entry Ingredients: Based on entry ownership
-CREATE POLICY "Users can view own food entry ingredients"
-  ON food_entry_ingredients FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM food_entries WHERE food_entries.id = food_entry_ingredients.food_entry_id AND food_entries.user_id = auth.uid()
-  ));
-
-CREATE POLICY "Users can insert own food entry ingredients"
-  ON food_entry_ingredients FOR INSERT
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM food_entries WHERE food_entries.id = food_entry_ingredients.food_entry_id AND food_entries.user_id = auth.uid()
-  ));
-
-CREATE POLICY "Users can delete own food entry ingredients"
-  ON food_entry_ingredients FOR DELETE
-  USING (EXISTS (
-    SELECT 1 FROM food_entries WHERE food_entries.id = food_entry_ingredients.food_entry_id AND food_entries.user_id = auth.uid()
-  ));
-
--- User Settings: Users can only see/modify their own
-CREATE POLICY "Users can view own settings"
-  ON user_settings FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own settings"
-  ON user_settings FOR UPDATE
-  USING (auth.uid() = user_id);
-
--- User Streaks: Users can only see their own
-CREATE POLICY "Users can view own streaks"
-  ON user_streaks FOR SELECT
-  USING (auth.uid() = user_id);
+-- RLS is disabled - the app handles user context via the selected user

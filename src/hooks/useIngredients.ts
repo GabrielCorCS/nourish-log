@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase, getCurrentUserId } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { useUserStore } from '@/stores/userStore'
 import type {
   Ingredient,
   IngredientInsert,
@@ -10,16 +11,24 @@ import type {
 const INGREDIENTS_KEY = ['ingredients']
 
 export function useIngredients(category?: IngredientCategory | 'all') {
-  return useQuery({
-    queryKey: [...INGREDIENTS_KEY, category],
-    queryFn: async () => {
-      const userId = await getCurrentUserId()
+  const { currentUser } = useUserStore()
+  const userId = currentUser?.id
 
+  return useQuery({
+    queryKey: [...INGREDIENTS_KEY, userId, category],
+    queryFn: async () => {
       let query = supabase
         .from('ingredients')
         .select('*')
-        .or(`user_id.eq.${userId},is_default.eq.true`)
         .order('name')
+
+      // If we have a user, show their ingredients + defaults
+      // Otherwise just show defaults
+      if (userId) {
+        query = query.or(`user_id.eq.${userId},is_default.eq.true`)
+      } else {
+        query = query.eq('is_default', true)
+      }
 
       if (category && category !== 'all') {
         query = query.eq('category', category)
@@ -30,6 +39,7 @@ export function useIngredients(category?: IngredientCategory | 'all') {
       if (error) throw error
       return data as Ingredient[]
     },
+    enabled: true,
   })
 }
 
@@ -52,14 +62,15 @@ export function useIngredient(id: string) {
 
 export function useCreateIngredient() {
   const queryClient = useQueryClient()
+  const { currentUser } = useUserStore()
 
   return useMutation({
     mutationFn: async (ingredient: Omit<IngredientInsert, 'user_id'>) => {
-      const userId = await getCurrentUserId()
+      if (!currentUser) throw new Error('No user selected')
 
       const { data, error } = await supabase
         .from('ingredients')
-        .insert({ ...ingredient, user_id: userId })
+        .insert({ ...ingredient, user_id: currentUser.id })
         .select()
         .single()
 
@@ -112,18 +123,26 @@ export function useDeleteIngredient() {
 }
 
 export function useSearchIngredients(search: string) {
-  return useQuery({
-    queryKey: [...INGREDIENTS_KEY, 'search', search],
-    queryFn: async () => {
-      const userId = await getCurrentUserId()
+  const { currentUser } = useUserStore()
+  const userId = currentUser?.id
 
-      const { data, error } = await supabase
+  return useQuery({
+    queryKey: [...INGREDIENTS_KEY, 'search', userId, search],
+    queryFn: async () => {
+      let query = supabase
         .from('ingredients')
         .select('*')
-        .or(`user_id.eq.${userId},is_default.eq.true`)
         .ilike('name', `%${search}%`)
         .order('name')
         .limit(20)
+
+      if (userId) {
+        query = query.or(`user_id.eq.${userId},is_default.eq.true`)
+      } else {
+        query = query.eq('is_default', true)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       return data as Ingredient[]

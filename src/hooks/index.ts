@@ -33,3 +33,10 @@ export {
   useUserStreak,
   useGoals,
 } from './useUserSettings'
+
+export {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from './useUsers'

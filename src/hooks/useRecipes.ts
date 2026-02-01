@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase, getCurrentUserId } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { useUserStore } from '@/stores/userStore'
 import type {
   Recipe,
   RecipeInsert,
@@ -11,10 +12,13 @@ import type {
 const RECIPES_KEY = ['recipes']
 
 export function useRecipes(favoritesOnly?: boolean) {
+  const { currentUser } = useUserStore()
+  const userId = currentUser?.id
+
   return useQuery({
-    queryKey: [...RECIPES_KEY, favoritesOnly],
+    queryKey: [...RECIPES_KEY, userId, favoritesOnly],
     queryFn: async () => {
-      const userId = await getCurrentUserId()
+      if (!userId) return []
 
       let query = supabase
         .from('recipes')
@@ -31,6 +35,7 @@ export function useRecipes(favoritesOnly?: boolean) {
       if (error) throw error
       return data as Recipe[]
     },
+    enabled: !!userId,
   })
 }
 
@@ -66,15 +71,16 @@ interface CreateRecipeInput {
 
 export function useCreateRecipe() {
   const queryClient = useQueryClient()
+  const { currentUser } = useUserStore()
 
   return useMutation({
     mutationFn: async ({ recipe, ingredients }: CreateRecipeInput) => {
-      const userId = await getCurrentUserId()
+      if (!currentUser) throw new Error('No user selected')
 
       // Create the recipe
       const { data: newRecipe, error: recipeError } = await supabase
         .from('recipes')
-        .insert({ ...recipe, user_id: userId })
+        .insert({ ...recipe, user_id: currentUser.id })
         .select()
         .single()
 
@@ -192,10 +198,13 @@ export function useToggleFavorite() {
 }
 
 export function useSearchRecipes(search: string) {
+  const { currentUser } = useUserStore()
+  const userId = currentUser?.id
+
   return useQuery({
-    queryKey: [...RECIPES_KEY, 'search', search],
+    queryKey: [...RECIPES_KEY, 'search', userId, search],
     queryFn: async () => {
-      const userId = await getCurrentUserId()
+      if (!userId) return []
 
       const { data, error } = await supabase
         .from('recipes')
@@ -208,6 +217,6 @@ export function useSearchRecipes(search: string) {
       if (error) throw error
       return data as Recipe[]
     },
-    enabled: search.length >= 2,
+    enabled: search.length >= 2 && !!userId,
   })
 }

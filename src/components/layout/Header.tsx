@@ -1,6 +1,7 @@
 import { Settings } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui'
+import { UserSelector } from '@/components/shared'
 
 interface HeaderProps {
   title?: string
@@ -11,13 +12,16 @@ export function Header({ title }: HeaderProps) {
     <header className="lg:hidden sticky top-0 z-30 bg-cream/95 backdrop-blur-sm border-b border-latte">
       <div className="flex items-center justify-between h-14 px-4">
         <h1 className="font-heading text-xl font-bold text-espresso">
-          {title || '🥗 NourishLog'}
+          {title || 'NourishLog'}
         </h1>
-        <Link to="/settings">
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Settings className="h-5 w-5" />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <UserSelector />
+          <Link to="/settings">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </header>
   )

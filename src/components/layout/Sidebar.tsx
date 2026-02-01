@@ -6,8 +6,11 @@ import {
   Apple,
   TrendingUp,
   Settings,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { UserSelector } from '@/components/shared'
+import { useUserStore } from '@/stores/userStore'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: Home },
@@ -18,13 +21,21 @@ const navItems = [
 ]
 
 export function Sidebar() {
+  const { currentUser } = useUserStore()
+  const isAdmin = currentUser?.is_admin ?? false
+
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-warm-white border-r border-latte fixed left-0 top-0">
       {/* Logo */}
       <div className="p-6 border-b border-latte">
         <h1 className="font-heading text-2xl font-bold text-espresso">
-          🥗 NourishLog
+          NourishLog
         </h1>
+      </div>
+
+      {/* User Selector */}
+      <div className="p-4 border-b border-latte">
+        <UserSelector />
       </div>
 
       {/* Navigation */}
@@ -52,8 +63,25 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* Settings */}
-      <div className="p-4 border-t border-latte">
+      {/* Bottom section */}
+      <div className="p-4 border-t border-latte space-y-1">
+        {isAdmin && (
+          <NavLink
+            to="/users"
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 px-4 py-3 rounded-button',
+                'text-sm font-medium transition-all duration-200',
+                isActive
+                  ? 'bg-caramel/10 text-caramel'
+                  : 'text-espresso/70 hover:bg-latte/30 hover:text-espresso'
+              )
+            }
+          >
+            <Users className="h-5 w-5" />
+            Users
+          </NavLink>
+        )}
         <NavLink
           to="/settings"
           className={({ isActive }) =>

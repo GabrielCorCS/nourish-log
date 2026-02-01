@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase, getCurrentUserId } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { useUserStore } from '@/stores/userStore'
 import { getDayRange, toISODateString } from '@/lib/dates'
 import type {
   FoodEntry,
@@ -12,12 +13,15 @@ import type {
 const FOOD_ENTRIES_KEY = ['food-entries']
 
 export function useFoodEntriesByDate(date: Date) {
+  const { currentUser } = useUserStore()
+  const userId = currentUser?.id
   const dateStr = toISODateString(date)
 
   return useQuery({
-    queryKey: [...FOOD_ENTRIES_KEY, dateStr],
+    queryKey: [...FOOD_ENTRIES_KEY, userId, dateStr],
     queryFn: async () => {
-      const userId = await getCurrentUserId()
+      if (!userId) return []
+
       const { start, end } = getDayRange(date)
 
       const { data, error } = await supabase
@@ -40,6 +44,7 @@ export function useFoodEntriesByDate(date: Date) {
       if (error) throw error
       return data as FoodEntryWithDetails[]
     },
+    enabled: !!userId,
   })
 }
 
@@ -48,15 +53,20 @@ export function useTodayEntries() {
 }
 
 export function useWeeklyEntries(startDate: Date, endDate: Date) {
+  const { currentUser } = useUserStore()
+  const userId = currentUser?.id
+
   return useQuery({
     queryKey: [
       ...FOOD_ENTRIES_KEY,
       'weekly',
+      userId,
       toISODateString(startDate),
       toISODateString(endDate),
     ],
     queryFn: async () => {
-      const userId = await getCurrentUserId()
+      if (!userId) return []
+
       const { start } = getDayRange(startDate)
       const { end } = getDayRange(endDate)
 
@@ -71,6 +81,7 @@ export function useWeeklyEntries(startDate: Date, endDate: Date) {
       if (error) throw error
       return data as FoodEntry[]
     },
+    enabled: !!userId,
   })
 }
 
@@ -81,15 +92,16 @@ interface CreateFoodEntryInput {
 
 export function useCreateFoodEntry() {
   const queryClient = useQueryClient()
+  const { currentUser } = useUserStore()
 
   return useMutation({
     mutationFn: async ({ entry, ingredients }: CreateFoodEntryInput) => {
-      const userId = await getCurrentUserId()
+      if (!currentUser) throw new Error('No user selected')
 
       // Create the food entry
       const { data: newEntry, error: entryError } = await supabase
         .from('food_entries')
-        .insert({ ...entry, user_id: userId })
+        .insert({ ...entry, user_id: currentUser.id })
         .select()
         .single()
 

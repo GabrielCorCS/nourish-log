@@ -23,6 +23,35 @@ export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 export interface Database {
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          id: string
+          email: string
+          name: string
+          avatar_emoji: string | null
+          is_admin: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          name: string
+          avatar_emoji?: string | null
+          is_admin?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string
+          avatar_emoji?: string | null
+          is_admin?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
       ingredients: {
         Row: {
           id: string
@@ -294,6 +323,10 @@ export interface Database {
 }
 
 // Convenience types
+export type AppUser = Database['public']['Tables']['app_users']['Row']
+export type AppUserInsert = Database['public']['Tables']['app_users']['Insert']
+export type AppUserUpdate = Database['public']['Tables']['app_users']['Update']
+
 export type Ingredient = Database['public']['Tables']['ingredients']['Row']
 export type IngredientInsert = Database['public']['Tables']['ingredients']['Insert']
 export type IngredientUpdate = Database['public']['Tables']['ingredients']['Update']

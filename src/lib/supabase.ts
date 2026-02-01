@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+import { useUserStore } from '@/stores/userStore'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -15,11 +16,8 @@ export const supabase = createClient<Database>(
   supabaseAnonKey || 'placeholder-key'
 )
 
-// Demo user ID for development (when auth is not configured)
-export const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
-
-// Helper to get current user ID or demo ID
-export const getCurrentUserId = async (): Promise<string> => {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user?.id || DEMO_USER_ID
+// Helper to get current user ID from userStore
+export const getCurrentUserId = (): string | null => {
+  const { currentUser } = useUserStore.getState()
+  return currentUser?.id ?? null
 }
