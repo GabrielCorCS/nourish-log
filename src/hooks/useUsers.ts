@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { useUserStore } from '@/stores/userStore'
 import type { AppUser, AppUserInsert, AppUserUpdate } from '@/types/database'
 
