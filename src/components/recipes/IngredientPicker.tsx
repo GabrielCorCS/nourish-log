@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Plus, Minus, Search, X } from 'lucide-react'
 import { Input, Button, Card } from '@/components/ui'
-import { MacroPills } from '@/components/shared'
 import { useIngredients } from '@/hooks'
-import { cn } from '@/lib/utils'
 import type { Ingredient } from '@/types/database'
 
 interface SelectedIngredient {

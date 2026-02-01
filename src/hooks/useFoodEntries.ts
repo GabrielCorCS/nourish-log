@@ -3,10 +3,8 @@ import { supabase, getCurrentUserId } from '@/lib/supabase'
 import { getDayRange, toISODateString } from '@/lib/dates'
 import type {
   FoodEntry,
-  FoodEntryInsert,
-  FoodEntryUpdate,
   FoodEntryWithDetails,
-  FoodEntryIngredientInsert,
+  MealType,
 } from '@/types/database'
 
 const FOOD_ENTRIES_KEY = ['food-entries']
@@ -75,7 +73,17 @@ export function useWeeklyEntries(startDate: Date, endDate: Date) {
 }
 
 interface CreateFoodEntryInput {
-  entry: Omit<FoodEntryInsert, 'user_id'>
+  entry: {
+    meal_type: MealType
+    recipe_id?: string | null
+    servings?: number
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+    notes?: string | null
+    logged_at?: string
+  }
   ingredients?: { ingredientId: string; quantity: number }[]
 }
 
@@ -89,7 +97,18 @@ export function useCreateFoodEntry() {
       // Create the food entry
       const { data: newEntry, error: entryError } = await supabase
         .from('food_entries')
-        .insert({ ...entry, user_id: userId })
+        .insert({
+          user_id: userId,
+          meal_type: entry.meal_type,
+          recipe_id: entry.recipe_id,
+          servings: entry.servings ?? 1,
+          calories: entry.calories,
+          protein: entry.protein,
+          carbs: entry.carbs,
+          fat: entry.fat,
+          notes: entry.notes,
+          logged_at: entry.logged_at,
+        })
         .select()
         .single()
 
@@ -97,13 +116,11 @@ export function useCreateFoodEntry() {
 
       // Add ingredients if quick-add
       if (ingredients && ingredients.length > 0) {
-        const entryIngredients: FoodEntryIngredientInsert[] = ingredients.map(
-          (ing) => ({
-            food_entry_id: newEntry.id,
-            ingredient_id: ing.ingredientId,
-            quantity: ing.quantity,
-          })
-        )
+        const entryIngredients = ingredients.map((ing) => ({
+          food_entry_id: newEntry.id,
+          ingredient_id: ing.ingredientId,
+          quantity: ing.quantity,
+        }))
 
         const { error: ingredientsError } = await supabase
           .from('food_entry_ingredients')
@@ -124,7 +141,19 @@ export function useUpdateFoodEntry() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: FoodEntryUpdate & { id: string }) => {
+    mutationFn: async ({
+      id,
+      ...updates
+    }: {
+      id: string
+      meal_type?: MealType
+      servings?: number
+      calories?: number
+      protein?: number
+      carbs?: number
+      fat?: number
+      notes?: string | null
+    }) => {
       const { data, error } = await supabase
         .from('food_entries')
         .update(updates)
