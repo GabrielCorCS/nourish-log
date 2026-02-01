@@ -1,6 +1,5 @@
 import { Card } from '@/components/ui'
 import { MacroDisplay } from '@/components/shared'
-import { NutritionRings } from '@/components/dashboard'
 import { useLogMealStore } from '@/stores'
 import { useGoals } from '@/hooks'
 import { MEAL_TYPES } from '@/lib/constants'

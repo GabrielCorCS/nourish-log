@@ -77,7 +77,6 @@ export function useCreateRecipe() {
     mutationFn: async ({ recipe, ingredients }: CreateRecipeInput) => {
       if (!currentUser) throw new Error('No user selected')
 
-      // Create the recipe
       const { data: newRecipe, error: recipeError } = await supabase
         .from('recipes')
         .insert({ ...recipe, user_id: currentUser.id })
@@ -86,7 +85,6 @@ export function useCreateRecipe() {
 
       if (recipeError) throw recipeError
 
-      // Add ingredients
       if (ingredients.length > 0) {
         const recipeIngredients: RecipeIngredientInsert[] = ingredients.map(
           (ing) => ({
@@ -122,7 +120,6 @@ export function useUpdateRecipe() {
 
   return useMutation({
     mutationFn: async ({ id, recipe, ingredients }: UpdateRecipeInput) => {
-      // Update the recipe
       const { data: updatedRecipe, error: recipeError } = await supabase
         .from('recipes')
         .update(recipe)
@@ -132,12 +129,9 @@ export function useUpdateRecipe() {
 
       if (recipeError) throw recipeError
 
-      // If ingredients are provided, replace them
       if (ingredients) {
-        // Delete existing ingredients
         await supabase.from('recipe_ingredients').delete().eq('recipe_id', id)
 
-        // Add new ingredients
         if (ingredients.length > 0) {
           const recipeIngredients: RecipeIngredientInsert[] = ingredients.map(
             (ing) => ({

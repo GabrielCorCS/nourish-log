@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { Button, Input, Textarea } from '@/components/ui'
+import { Button, Textarea } from '@/components/ui'
 import { MacroDisplay } from '@/components/shared'
 import { useLogMealStore } from '@/stores'
 

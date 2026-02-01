@@ -1,5 +1,4 @@
 import { BookOpen } from 'lucide-react'
-import { Card } from '@/components/ui'
 import { EmptyState, LoadingState } from '@/components/shared'
 import { MealCard } from './MealCard'
 import { DailySummary } from './DailySummary'

@@ -98,7 +98,6 @@ export function useCreateFoodEntry() {
     mutationFn: async ({ entry, ingredients }: CreateFoodEntryInput) => {
       if (!currentUser) throw new Error('No user selected')
 
-      // Create the food entry
       const { data: newEntry, error: entryError } = await supabase
         .from('food_entries')
         .insert({ ...entry, user_id: currentUser.id })
@@ -107,7 +106,6 @@ export function useCreateFoodEntry() {
 
       if (entryError) throw entryError
 
-      // Add ingredients if quick-add
       if (ingredients && ingredients.length > 0) {
         const entryIngredients: FoodEntryIngredientInsert[] = ingredients.map(
           (ing) => ({
@@ -168,7 +166,6 @@ export function useDeleteFoodEntry() {
   })
 }
 
-// Calculate daily totals from entries
 export function calculateDailyTotals(entries: FoodEntry[]) {
   return entries.reduce(
     (totals, entry) => ({

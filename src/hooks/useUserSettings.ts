@@ -32,7 +32,6 @@ export function useUserSettings() {
         .single()
 
       if (error) {
-        // Return default settings if not found
         if (error.code === 'PGRST116') {
           return {
             daily_calorie_goal: DEFAULT_GOALS.calories,
@@ -98,7 +97,6 @@ export function useUserStreak() {
         .single()
 
       if (error) {
-        // Return default streak if not found
         if (error.code === 'PGRST116') {
           return {
             current_streak: 0,
@@ -115,7 +113,6 @@ export function useUserStreak() {
   })
 }
 
-// Helper hook to get goals easily
 export function useGoals() {
   const { data: settings, isLoading } = useUserSettings()
 

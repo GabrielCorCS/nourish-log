@@ -22,8 +22,6 @@ export function useIngredients(category?: IngredientCategory | 'all') {
         .select('*')
         .order('name')
 
-      // If we have a user, show their ingredients + defaults
-      // Otherwise just show defaults
       if (userId) {
         query = query.or(`user_id.eq.${userId},is_default.eq.true`)
       } else {

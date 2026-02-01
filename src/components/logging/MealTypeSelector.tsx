@@ -1,7 +1,6 @@
 import { useLogMealStore } from '@/stores'
 import { MEAL_TYPES } from '@/lib/constants'
 import { cn } from '@/lib/utils'
-import type { MealType } from '@/types/database'
 
 export function MealTypeSelector() {
   const setMealType = useLogMealStore((state) => state.setMealType)
