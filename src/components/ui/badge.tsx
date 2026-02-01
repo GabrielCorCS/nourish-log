@@ -1,29 +1,43 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { type HTMLAttributes } from 'react'
+import { cn } from '@/lib/utils'
 
-import { cn } from "@/lib/utils";
-
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
-
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
-
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  variant?: 'default' | 'secondary' | 'success' | 'warning' | 'error' | 'outline'
+  size?: 'sm' | 'md'
 }
 
-export { Badge, badgeVariants };
+export function Badge({
+  className,
+  variant = 'default',
+  size = 'md',
+  children,
+  ...props
+}: BadgeProps) {
+  const variants = {
+    default: 'bg-caramel/20 text-caramel',
+    secondary: 'bg-latte/30 text-espresso',
+    success: 'bg-sage/20 text-sage',
+    warning: 'bg-honey/30 text-espresso',
+    error: 'bg-terracotta/20 text-terracotta',
+    outline: 'border border-latte text-espresso',
+  }
+
+  const sizes = {
+    sm: 'px-1.5 py-0.5 text-xs',
+    md: 'px-2 py-0.5 text-sm',
+  }
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center font-medium rounded-full',
+        variants[variant],
+        sizes[size],
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </span>
+  )
+}
