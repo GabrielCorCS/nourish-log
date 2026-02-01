@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { useUsers } from '@/hooks'
 import { useUserStore } from '@/stores/userStore'
 import { LoadingState } from './LoadingState'
 
 interface UserProviderProps {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export function UserProvider({ children }: UserProviderProps) {
