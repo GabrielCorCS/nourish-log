@@ -1,6 +1,6 @@
 import { Heart, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Button, Badge } from '@/components/ui'
+import { Card, Button } from '@/components/ui'
 import { MacroPills } from '@/components/shared'
 import { useToggleFavorite } from '@/hooks'
 import { cn } from '@/lib/utils'

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCurrentUserId } from '@/lib/supabase'
 import { DEFAULT_GOALS } from '@/lib/constants'
-import type { UserSettings, UserSettingsUpdate, UserStreak } from '@/types/database'
+import type { UserSettings, UserStreak } from '@/types/database'
 
 const USER_SETTINGS_KEY = ['user-settings']
 const USER_STREAKS_KEY = ['user-streaks']
@@ -42,7 +42,14 @@ export function useUpdateUserSettings() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (updates: UserSettingsUpdate) => {
+    mutationFn: async (updates: {
+      daily_calorie_goal?: number
+      daily_protein_goal?: number
+      daily_carbs_goal?: number
+      daily_fat_goal?: number
+      theme?: string
+      notifications_enabled?: boolean
+    }) => {
       const userId = await getCurrentUserId()
 
       const { data, error } = await supabase

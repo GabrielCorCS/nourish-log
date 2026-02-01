@@ -2,10 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCurrentUserId } from '@/lib/supabase'
 import type {
   Recipe,
-  RecipeInsert,
-  RecipeUpdate,
   RecipeWithIngredients,
-  RecipeIngredientInsert,
 } from '@/types/database'
 
 const RECIPES_KEY = ['recipes']
@@ -60,7 +57,20 @@ export function useRecipe(id: string) {
 }
 
 interface CreateRecipeInput {
-  recipe: Omit<RecipeInsert, 'user_id'>
+  recipe: {
+    name: string
+    emoji?: string | null
+    description?: string | null
+    instructions?: string | null
+    servings?: number
+    prep_time?: number | null
+    cook_time?: number | null
+    total_calories?: number
+    total_protein?: number
+    total_carbs?: number
+    total_fat?: number
+    is_favorite?: boolean
+  }
   ingredients: { ingredientId: string; quantity: number }[]
 }
 
@@ -74,7 +84,21 @@ export function useCreateRecipe() {
       // Create the recipe
       const { data: newRecipe, error: recipeError } = await supabase
         .from('recipes')
-        .insert({ ...recipe, user_id: userId })
+        .insert({
+          user_id: userId,
+          name: recipe.name,
+          emoji: recipe.emoji,
+          description: recipe.description,
+          instructions: recipe.instructions,
+          servings: recipe.servings ?? 1,
+          prep_time: recipe.prep_time,
+          cook_time: recipe.cook_time,
+          total_calories: recipe.total_calories ?? 0,
+          total_protein: recipe.total_protein ?? 0,
+          total_carbs: recipe.total_carbs ?? 0,
+          total_fat: recipe.total_fat ?? 0,
+          is_favorite: recipe.is_favorite ?? false,
+        })
         .select()
         .single()
 
@@ -82,13 +106,11 @@ export function useCreateRecipe() {
 
       // Add ingredients
       if (ingredients.length > 0) {
-        const recipeIngredients: RecipeIngredientInsert[] = ingredients.map(
-          (ing) => ({
-            recipe_id: newRecipe.id,
-            ingredient_id: ing.ingredientId,
-            quantity: ing.quantity,
-          })
-        )
+        const recipeIngredients = ingredients.map((ing) => ({
+          recipe_id: newRecipe.id,
+          ingredient_id: ing.ingredientId,
+          quantity: ing.quantity,
+        }))
 
         const { error: ingredientsError } = await supabase
           .from('recipe_ingredients')
@@ -107,7 +129,20 @@ export function useCreateRecipe() {
 
 interface UpdateRecipeInput {
   id: string
-  recipe: RecipeUpdate
+  recipe: {
+    name?: string
+    emoji?: string | null
+    description?: string | null
+    instructions?: string | null
+    servings?: number
+    prep_time?: number | null
+    cook_time?: number | null
+    total_calories?: number
+    total_protein?: number
+    total_carbs?: number
+    total_fat?: number
+    is_favorite?: boolean
+  }
   ingredients?: { ingredientId: string; quantity: number }[]
 }
 
@@ -133,13 +168,11 @@ export function useUpdateRecipe() {
 
         // Add new ingredients
         if (ingredients.length > 0) {
-          const recipeIngredients: RecipeIngredientInsert[] = ingredients.map(
-            (ing) => ({
-              recipe_id: id,
-              ingredient_id: ing.ingredientId,
-              quantity: ing.quantity,
-            })
-          )
+          const recipeIngredients = ingredients.map((ing) => ({
+            recipe_id: id,
+            ingredient_id: ing.ingredientId,
+            quantity: ing.quantity,
+          }))
 
           const { error: ingredientsError } = await supabase
             .from('recipe_ingredients')

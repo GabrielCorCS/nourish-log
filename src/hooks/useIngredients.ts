@@ -2,8 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCurrentUserId } from '@/lib/supabase'
 import type {
   Ingredient,
-  IngredientInsert,
-  IngredientUpdate,
   IngredientCategory,
 } from '@/types/database'
 
@@ -54,12 +52,35 @@ export function useCreateIngredient() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (ingredient: Omit<IngredientInsert, 'user_id'>) => {
+    mutationFn: async (ingredient: {
+      name: string
+      emoji?: string | null
+      category: IngredientCategory
+      serving_size: number
+      serving_unit: string
+      calories: number
+      protein: number
+      carbs: number
+      fat: number
+      is_default?: boolean
+    }) => {
       const userId = await getCurrentUserId()
 
       const { data, error } = await supabase
         .from('ingredients')
-        .insert({ ...ingredient, user_id: userId })
+        .insert({
+          user_id: userId,
+          name: ingredient.name,
+          emoji: ingredient.emoji,
+          category: ingredient.category,
+          serving_size: ingredient.serving_size,
+          serving_unit: ingredient.serving_unit,
+          calories: ingredient.calories,
+          protein: ingredient.protein,
+          carbs: ingredient.carbs,
+          fat: ingredient.fat,
+          is_default: ingredient.is_default ?? false,
+        })
         .select()
         .single()
 
@@ -79,7 +100,18 @@ export function useUpdateIngredient() {
     mutationFn: async ({
       id,
       ...updates
-    }: IngredientUpdate & { id: string }) => {
+    }: {
+      id: string
+      name?: string
+      emoji?: string | null
+      category?: IngredientCategory
+      serving_size?: number
+      serving_unit?: string
+      calories?: number
+      protein?: number
+      carbs?: number
+      fat?: number
+    }) => {
       const { data, error } = await supabase
         .from('ingredients')
         .update(updates)

@@ -1,321 +1,35 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+// Re-export types from the auto-generated Supabase types
+import type { Database as SupabaseDatabase } from '@/integrations/supabase/types'
 
-export type IngredientCategory =
-  | 'proteins'
-  | 'grains'
-  | 'vegetables'
-  | 'fruits'
-  | 'dairy'
-  | 'fats'
-  | 'legumes'
-  | 'nuts'
-  | 'condiments'
-  | 'beverages'
+export type Database = SupabaseDatabase
 
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+// Enums
+export type IngredientCategory = SupabaseDatabase['public']['Enums']['ingredient_category']
+export type MealType = SupabaseDatabase['public']['Enums']['meal_type']
 
-export interface Database {
-  public: {
-    Tables: {
-      ingredients: {
-        Row: {
-          id: string
-          user_id: string | null
-          name: string
-          emoji: string | null
-          category: IngredientCategory
-          serving_size: number
-          serving_unit: string
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          is_default: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          name: string
-          emoji?: string | null
-          category: IngredientCategory
-          serving_size: number
-          serving_unit: string
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          is_default?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          name?: string
-          emoji?: string | null
-          category?: IngredientCategory
-          serving_size?: number
-          serving_unit?: string
-          calories?: number
-          protein?: number
-          carbs?: number
-          fat?: number
-          is_default?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      recipes: {
-        Row: {
-          id: string
-          user_id: string
-          name: string
-          emoji: string | null
-          description: string | null
-          instructions: string | null
-          servings: number
-          prep_time: number | null
-          cook_time: number | null
-          total_calories: number
-          total_protein: number
-          total_carbs: number
-          total_fat: number
-          is_favorite: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          name: string
-          emoji?: string | null
-          description?: string | null
-          instructions?: string | null
-          servings?: number
-          prep_time?: number | null
-          cook_time?: number | null
-          total_calories?: number
-          total_protein?: number
-          total_carbs?: number
-          total_fat?: number
-          is_favorite?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          name?: string
-          emoji?: string | null
-          description?: string | null
-          instructions?: string | null
-          servings?: number
-          prep_time?: number | null
-          cook_time?: number | null
-          total_calories?: number
-          total_protein?: number
-          total_carbs?: number
-          total_fat?: number
-          is_favorite?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      recipe_ingredients: {
-        Row: {
-          id: string
-          recipe_id: string
-          ingredient_id: string
-          quantity: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          recipe_id: string
-          ingredient_id: string
-          quantity: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          recipe_id?: string
-          ingredient_id?: string
-          quantity?: number
-          created_at?: string
-        }
-      }
-      food_entries: {
-        Row: {
-          id: string
-          user_id: string
-          recipe_id: string | null
-          meal_type: MealType
-          servings: number
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          notes: string | null
-          logged_at: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          recipe_id?: string | null
-          meal_type: MealType
-          servings?: number
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          notes?: string | null
-          logged_at?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          recipe_id?: string | null
-          meal_type?: MealType
-          servings?: number
-          calories?: number
-          protein?: number
-          carbs?: number
-          fat?: number
-          notes?: string | null
-          logged_at?: string
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      food_entry_ingredients: {
-        Row: {
-          id: string
-          food_entry_id: string
-          ingredient_id: string
-          quantity: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          food_entry_id: string
-          ingredient_id: string
-          quantity: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          food_entry_id?: string
-          ingredient_id?: string
-          quantity?: number
-          created_at?: string
-        }
-      }
-      user_settings: {
-        Row: {
-          id: string
-          user_id: string
-          daily_calorie_goal: number
-          daily_protein_goal: number
-          daily_carbs_goal: number
-          daily_fat_goal: number
-          theme: string
-          notifications_enabled: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          daily_calorie_goal?: number
-          daily_protein_goal?: number
-          daily_carbs_goal?: number
-          daily_fat_goal?: number
-          theme?: string
-          notifications_enabled?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          daily_calorie_goal?: number
-          daily_protein_goal?: number
-          daily_carbs_goal?: number
-          daily_fat_goal?: number
-          theme?: string
-          notifications_enabled?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      user_streaks: {
-        Row: {
-          id: string
-          user_id: string
-          current_streak: number
-          longest_streak: number
-          last_logged_date: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          current_streak?: number
-          longest_streak?: number
-          last_logged_date?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          current_streak?: number
-          longest_streak?: number
-          last_logged_date?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-    }
-  }
-}
+// Table Row types
+export type Ingredient = SupabaseDatabase['public']['Tables']['ingredients']['Row']
+export type IngredientInsert = SupabaseDatabase['public']['Tables']['ingredients']['Insert']
+export type IngredientUpdate = SupabaseDatabase['public']['Tables']['ingredients']['Update']
 
-// Convenience types
-export type Ingredient = Database['public']['Tables']['ingredients']['Row']
-export type IngredientInsert = Database['public']['Tables']['ingredients']['Insert']
-export type IngredientUpdate = Database['public']['Tables']['ingredients']['Update']
+export type Recipe = SupabaseDatabase['public']['Tables']['recipes']['Row']
+export type RecipeInsert = SupabaseDatabase['public']['Tables']['recipes']['Insert']
+export type RecipeUpdate = SupabaseDatabase['public']['Tables']['recipes']['Update']
 
-export type Recipe = Database['public']['Tables']['recipes']['Row']
-export type RecipeInsert = Database['public']['Tables']['recipes']['Insert']
-export type RecipeUpdate = Database['public']['Tables']['recipes']['Update']
+export type RecipeIngredient = SupabaseDatabase['public']['Tables']['recipe_ingredients']['Row']
+export type RecipeIngredientInsert = SupabaseDatabase['public']['Tables']['recipe_ingredients']['Insert']
 
-export type RecipeIngredient = Database['public']['Tables']['recipe_ingredients']['Row']
-export type RecipeIngredientInsert = Database['public']['Tables']['recipe_ingredients']['Insert']
+export type FoodEntry = SupabaseDatabase['public']['Tables']['food_entries']['Row']
+export type FoodEntryInsert = SupabaseDatabase['public']['Tables']['food_entries']['Insert']
+export type FoodEntryUpdate = SupabaseDatabase['public']['Tables']['food_entries']['Update']
 
-export type FoodEntry = Database['public']['Tables']['food_entries']['Row']
-export type FoodEntryInsert = Database['public']['Tables']['food_entries']['Insert']
-export type FoodEntryUpdate = Database['public']['Tables']['food_entries']['Update']
+export type FoodEntryIngredient = SupabaseDatabase['public']['Tables']['food_entry_ingredients']['Row']
+export type FoodEntryIngredientInsert = SupabaseDatabase['public']['Tables']['food_entry_ingredients']['Insert']
 
-export type FoodEntryIngredient = Database['public']['Tables']['food_entry_ingredients']['Row']
-export type FoodEntryIngredientInsert = Database['public']['Tables']['food_entry_ingredients']['Insert']
+export type UserSettings = SupabaseDatabase['public']['Tables']['user_settings']['Row']
+export type UserSettingsUpdate = SupabaseDatabase['public']['Tables']['user_settings']['Update']
 
-export type UserSettings = Database['public']['Tables']['user_settings']['Row']
-export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update']
-
-export type UserStreak = Database['public']['Tables']['user_streaks']['Row']
+export type UserStreak = SupabaseDatabase['public']['Tables']['user_streaks']['Row']
 
 // Extended types with relations
 export interface RecipeWithIngredients extends Recipe {

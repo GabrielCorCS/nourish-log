@@ -1,11 +1,13 @@
-import { type ClassValue, clsx } from 'clsx'
+// Simple clsx implementation
+type ClassValue =
+  | string
+  | number
+  | boolean
+  | undefined
+  | null
+  | ClassValue[]
+  | { [key: string]: boolean | undefined | null }
 
-// Simple clsx implementation without external dependency
-export function cn(...inputs: ClassValue[]): string {
-  return clsx(inputs)
-}
-
-// Simple clsx function
 function clsx(...inputs: ClassValue[]): string {
   const classes: string[] = []
 
@@ -26,14 +28,9 @@ function clsx(...inputs: ClassValue[]): string {
   return classes.join(' ')
 }
 
-export type ClassValue =
-  | string
-  | number
-  | boolean
-  | undefined
-  | null
-  | ClassValue[]
-  | { [key: string]: boolean | undefined | null }
+export function cn(...inputs: ClassValue[]): string {
+  return clsx(inputs)
+}
 
 // Format number with commas
 export function formatNumber(num: number): string {

@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Button, Input, Textarea, Select } from '@/components/ui'
+import { Card, Button, Input, Textarea } from '@/components/ui'
 import { EmojiPicker, MacroDisplay } from '@/components/shared'
 import { IngredientPicker } from './IngredientPicker'
 import { useCreateRecipe, useUpdateRecipe, useRecipe } from '@/hooks'
 import { useUIStore } from '@/stores'
 import { calculateRecipeNutrition } from '@/lib/nutrition'
-import type { Ingredient, RecipeWithIngredients } from '@/types/database'
+import type { Ingredient } from '@/types/database'
 
 interface SelectedIngredient {
   ingredient: Ingredient
