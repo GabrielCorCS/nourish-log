@@ -146,6 +146,47 @@ export type Database = {
           },
         ]
       }
+      grocery_inventory: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string
+          quantity_on_hand: number
+          threshold_quantity: number
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          quantity_on_hand?: number
+          threshold_quantity?: number
+          unit?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          quantity_on_hand?: number
+          threshold_quantity?: number
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_inventory_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           calories: number
@@ -204,6 +245,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      invited_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_emoji: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_emoji?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_emoji?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       recipe_ingredients: {
         Row: {
@@ -309,6 +398,65 @@ export type Database = {
           },
         ]
       }
+      shopping_list: {
+        Row: {
+          auto_added: boolean
+          created_at: string
+          id: string
+          ingredient_id: string
+          is_purchased: boolean
+          quantity_needed: number
+          user_id: string
+        }
+        Insert: {
+          auto_added?: boolean
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          is_purchased?: boolean
+          quantity_needed?: number
+          user_id: string
+        }
+        Update: {
+          auto_added?: boolean
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          is_purchased?: boolean
+          quantity_needed?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -399,9 +547,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_email_invited: { Args: { _email: string }; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "user"
       ingredient_category:
         | "proteins"
         | "grains"
@@ -541,6 +697,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       ingredient_category: [
         "proteins",
         "grains",
