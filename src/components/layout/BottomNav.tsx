@@ -3,8 +3,8 @@ import {
   Home,
   BookOpen,
   ChefHat,
-  Apple,
-  TrendingUp,
+  Package,
+  ShoppingCart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -12,8 +12,8 @@ const navItems = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/journal', label: 'Journal', icon: BookOpen },
   { path: '/recipes', label: 'Recipes', icon: ChefHat },
-  { path: '/pantry', label: 'Pantry', icon: Apple },
-  { path: '/progress', label: 'Progress', icon: TrendingUp },
+  { path: '/inventory', label: 'Inventory', icon: Package },
+  { path: '/shopping', label: 'Shop', icon: ShoppingCart },
 ]
 
 export function BottomNav() {
