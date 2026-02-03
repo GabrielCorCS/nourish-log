@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useUserStore } from '@/stores/userStore'
+import { useAuth } from '@/contexts/AuthContext'
 import { getDayRange, toISODateString } from '@/lib/dates'
 import type {
   FoodEntry,
@@ -13,8 +13,8 @@ import type {
 const FOOD_ENTRIES_KEY = ['food-entries']
 
 export function useFoodEntriesByDate(date: Date) {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
   const dateStr = toISODateString(date)
 
   return useQuery({
@@ -36,7 +36,6 @@ export function useFoodEntriesByDate(date: Date) {
           )
         `
         )
-        .eq('user_id', userId)
         .gte('logged_at', start)
         .lte('logged_at', end)
         .order('logged_at', { ascending: true })
@@ -53,8 +52,8 @@ export function useTodayEntries() {
 }
 
 export function useWeeklyEntries(startDate: Date, endDate: Date) {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [
@@ -73,7 +72,6 @@ export function useWeeklyEntries(startDate: Date, endDate: Date) {
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
-        .eq('user_id', userId)
         .gte('logged_at', start)
         .lte('logged_at', end)
         .order('logged_at', { ascending: true })
@@ -92,15 +90,15 @@ interface CreateFoodEntryInput {
 
 export function useCreateFoodEntry() {
   const queryClient = useQueryClient()
-  const { currentUser } = useUserStore()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async ({ entry, ingredients }: CreateFoodEntryInput) => {
-      if (!currentUser) throw new Error('No user selected')
+      if (!user) throw new Error('Not authenticated')
 
       const { data: newEntry, error: entryError } = await supabase
         .from('food_entries')
-        .insert({ ...entry, user_id: currentUser.id })
+        .insert({ ...entry, user_id: user.id })
         .select()
         .single()
 

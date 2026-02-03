@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useUserStore } from '@/stores/userStore'
+import { useAuth } from '@/contexts/AuthContext'
 import type {
   Recipe,
   RecipeInsert,
@@ -12,8 +12,8 @@ import type {
 const RECIPES_KEY = ['recipes']
 
 export function useRecipes(favoritesOnly?: boolean) {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [...RECIPES_KEY, userId, favoritesOnly],
@@ -23,7 +23,6 @@ export function useRecipes(favoritesOnly?: boolean) {
       let query = supabase
         .from('recipes')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
       if (favoritesOnly) {
@@ -71,15 +70,15 @@ interface CreateRecipeInput {
 
 export function useCreateRecipe() {
   const queryClient = useQueryClient()
-  const { currentUser } = useUserStore()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async ({ recipe, ingredients }: CreateRecipeInput) => {
-      if (!currentUser) throw new Error('No user selected')
+      if (!user) throw new Error('Not authenticated')
 
       const { data: newRecipe, error: recipeError } = await supabase
         .from('recipes')
-        .insert({ ...recipe, user_id: currentUser.id })
+        .insert({ ...recipe, user_id: user.id })
         .select()
         .single()
 
@@ -192,8 +191,8 @@ export function useToggleFavorite() {
 }
 
 export function useSearchRecipes(search: string) {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [...RECIPES_KEY, 'search', userId, search],
@@ -203,7 +202,6 @@ export function useSearchRecipes(search: string) {
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
-        .eq('user_id', userId)
         .ilike('name', `%${search}%`)
         .order('name')
         .limit(20)

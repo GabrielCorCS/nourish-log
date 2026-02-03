@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { ProtectedRoute } from '@/components/auth'
 import { AppShell } from '@/components/layout'
-import { UserProvider } from '@/components/shared/UserProvider'
 import {
   Dashboard,
   Journal,
@@ -11,7 +12,10 @@ import {
   Pantry,
   Progress,
   Settings,
-  UserManagement,
+  Login,
+  Invitations,
+  Inventory,
+  ShoppingList,
 } from '@/pages'
 
 const queryClient = new QueryClient({
@@ -26,24 +30,136 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserProvider>
+      <AuthProvider>
         <BrowserRouter>
-          <AppShell>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/recipes" element={<Recipes />} />
-              <Route path="/recipes/new" element={<RecipeEditor />} />
-              <Route path="/recipes/:id" element={<RecipeDetail />} />
-              <Route path="/recipes/:id/edit" element={<RecipeEditor />} />
-              <Route path="/pantry" element={<Pantry />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/users" element={<UserManagement />} />
-            </Routes>
-          </AppShell>
+          <Routes>
+            {/* Public route */}
+            <Route path="/login" element={<Login />} />
+            
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Dashboard />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/journal"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Journal />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recipes"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Recipes />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recipes/new"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <RecipeEditor />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recipes/:id"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <RecipeDetail />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recipes/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <RecipeEditor />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pantry"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Pantry />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Inventory />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/shopping"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <ShoppingList />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/progress"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Progress />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Settings />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invitations"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AppShell>
+                    <Invitations />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </BrowserRouter>
-      </UserProvider>
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

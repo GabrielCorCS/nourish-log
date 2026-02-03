@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useUserStore } from '@/stores/userStore'
+import { useAuth } from '@/contexts/AuthContext'
 import { DEFAULT_GOALS } from '@/lib/constants'
 import type { UserSettings, UserSettingsUpdate, UserStreak } from '@/types/database'
 
@@ -8,8 +8,8 @@ const USER_SETTINGS_KEY = ['user-settings']
 const USER_STREAKS_KEY = ['user-streaks']
 
 export function useUserSettings() {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [...USER_SETTINGS_KEY, userId],
@@ -53,16 +53,16 @@ export function useUserSettings() {
 
 export function useUpdateUserSettings() {
   const queryClient = useQueryClient()
-  const { currentUser } = useUserStore()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async (updates: UserSettingsUpdate) => {
-      if (!currentUser) throw new Error('No user selected')
+      if (!user) throw new Error('Not authenticated')
 
       const { data, error } = await supabase
         .from('user_settings')
         .update(updates)
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .select()
         .single()
 
@@ -76,8 +76,8 @@ export function useUpdateUserSettings() {
 }
 
 export function useUserStreak() {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [...USER_STREAKS_KEY, userId],

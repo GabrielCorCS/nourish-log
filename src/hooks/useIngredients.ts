@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useUserStore } from '@/stores/userStore'
+import { useAuth } from '@/contexts/AuthContext'
 import type {
   Ingredient,
   IngredientInsert,
@@ -11,8 +11,8 @@ import type {
 const INGREDIENTS_KEY = ['ingredients']
 
 export function useIngredients(category?: IngredientCategory | 'all') {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [...INGREDIENTS_KEY, userId, category],
@@ -22,12 +22,7 @@ export function useIngredients(category?: IngredientCategory | 'all') {
         .select('*')
         .order('name')
 
-      if (userId) {
-        query = query.or(`user_id.eq.${userId},is_default.eq.true`)
-      } else {
-        query = query.eq('is_default', true)
-      }
-
+      // RLS will filter - just select all accessible
       if (category && category !== 'all') {
         query = query.eq('category', category)
       }
@@ -60,15 +55,15 @@ export function useIngredient(id: string) {
 
 export function useCreateIngredient() {
   const queryClient = useQueryClient()
-  const { currentUser } = useUserStore()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async (ingredient: Omit<IngredientInsert, 'user_id'>) => {
-      if (!currentUser) throw new Error('No user selected')
+      if (!user) throw new Error('Not authenticated')
 
       const { data, error } = await supabase
         .from('ingredients')
-        .insert({ ...ingredient, user_id: currentUser.id })
+        .insert({ ...ingredient, user_id: user.id })
         .select()
         .single()
 
@@ -121,24 +116,18 @@ export function useDeleteIngredient() {
 }
 
 export function useSearchIngredients(search: string) {
-  const { currentUser } = useUserStore()
-  const userId = currentUser?.id
+  const { user } = useAuth()
+  const userId = user?.id
 
   return useQuery({
     queryKey: [...INGREDIENTS_KEY, 'search', userId, search],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from('ingredients')
         .select('*')
         .ilike('name', `%${search}%`)
         .order('name')
         .limit(20)
-
-      if (userId) {
-        query = query.or(`user_id.eq.${userId},is_default.eq.true`)
-      } else {
-        query = query.eq('is_default', true)
-      }
 
       const { data, error } = await query
 
