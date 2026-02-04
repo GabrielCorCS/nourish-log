@@ -13,6 +13,7 @@ import {
   Progress,
   Settings,
   Login,
+  AuthCallback,
   Invitations,
   Inventory,
   ShoppingList,
@@ -35,6 +36,7 @@ function App() {
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Protected routes */}
             <Route

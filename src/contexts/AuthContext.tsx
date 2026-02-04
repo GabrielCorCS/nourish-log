@@ -97,7 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        // Use a dedicated callback route so the OAuth exchange isn't blocked by ProtectedRoute.
+        // IMPORTANT: this URL must be allow-listed in Supabase Auth -> URL Configuration.
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
