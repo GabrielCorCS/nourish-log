@@ -37,3 +37,19 @@ export {
 export { useInvitations } from './useInvitations'
 export { useInventory } from './useInventory'
 export { useShoppingList } from './useShoppingList'
+
+export {
+  useStores,
+  useCreateStore,
+  useUpdateStore,
+  useDeleteStore,
+} from './useStores'
+
+export {
+  useGroceryPurchases,
+  useCreateGroceryPurchase,
+  useDeleteGroceryPurchase,
+  calculateSpendingByCategory,
+  calculateSpendingByStore,
+  calculateTotalSpending,
+} from './useGroceryPurchases'

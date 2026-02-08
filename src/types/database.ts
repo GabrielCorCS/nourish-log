@@ -66,6 +66,7 @@ export interface Database {
           carbs: number
           fat: number
           is_default: boolean
+          default_store_id: string | null
           created_at: string
           updated_at: string
         }
@@ -82,6 +83,7 @@ export interface Database {
           carbs: number
           fat: number
           is_default?: boolean
+          default_store_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -98,8 +100,73 @@ export interface Database {
           carbs?: number
           fat?: number
           is_default?: boolean
+          default_store_id?: string | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      stores: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          emoji: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          emoji?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          emoji?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      grocery_purchases: {
+        Row: {
+          id: string
+          user_id: string
+          ingredient_id: string | null
+          store_id: string | null
+          quantity: number
+          unit: string
+          price: number
+          purchased_at: string
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          ingredient_id?: string | null
+          store_id?: string | null
+          quantity?: number
+          unit?: string
+          price?: number
+          purchased_at?: string
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          ingredient_id?: string | null
+          store_id?: string | null
+          quantity?: number
+          unit?: string
+          price?: number
+          purchased_at?: string
+          notes?: string | null
+          created_at?: string
         }
       }
       recipes: {
@@ -350,6 +417,14 @@ export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['
 
 export type UserStreak = Database['public']['Tables']['user_streaks']['Row']
 
+export type Store = Database['public']['Tables']['stores']['Row']
+export type StoreInsert = Database['public']['Tables']['stores']['Insert']
+export type StoreUpdate = Database['public']['Tables']['stores']['Update']
+
+export type GroceryPurchase = Database['public']['Tables']['grocery_purchases']['Row']
+export type GroceryPurchaseInsert = Database['public']['Tables']['grocery_purchases']['Insert']
+export type GroceryPurchaseUpdate = Database['public']['Tables']['grocery_purchases']['Update']
+
 // Extended types with relations
 export interface RecipeWithIngredients extends Recipe {
   recipe_ingredients: (RecipeIngredient & {
@@ -362,4 +437,9 @@ export interface FoodEntryWithDetails extends FoodEntry {
   food_entry_ingredients?: (FoodEntryIngredient & {
     ingredient: Ingredient
   })[]
+}
+
+export interface GroceryPurchaseWithDetails extends GroceryPurchase {
+  ingredient?: Ingredient | null
+  store?: Store | null
 }
