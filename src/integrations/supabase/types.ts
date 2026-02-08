@@ -187,12 +187,67 @@ export type Database = {
           },
         ]
       }
+      grocery_purchases: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string | null
+          notes: string | null
+          price: number
+          purchased_at: string
+          quantity: number
+          store_id: string | null
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          notes?: string | null
+          price?: number
+          purchased_at?: string
+          quantity?: number
+          store_id?: string | null
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          notes?: string | null
+          price?: number
+          purchased_at?: string
+          quantity?: number
+          store_id?: string | null
+          unit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_purchases_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_purchases_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           calories: number
           carbs: number
           category: Database["public"]["Enums"]["ingredient_category"]
           created_at: string
+          default_store_id: string | null
           emoji: string | null
           fat: number
           id: string
@@ -209,6 +264,7 @@ export type Database = {
           carbs?: number
           category: Database["public"]["Enums"]["ingredient_category"]
           created_at?: string
+          default_store_id?: string | null
           emoji?: string | null
           fat?: number
           id?: string
@@ -225,6 +281,7 @@ export type Database = {
           carbs?: number
           category?: Database["public"]["Enums"]["ingredient_category"]
           created_at?: string
+          default_store_id?: string | null
           emoji?: string | null
           fat?: number
           id?: string
@@ -237,6 +294,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ingredients_default_store_id_fkey"
+            columns: ["default_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ingredients_user_id_fkey"
             columns: ["user_id"]
@@ -435,6 +499,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stores: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

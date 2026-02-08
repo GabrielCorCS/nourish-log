@@ -11,7 +11,7 @@ import {
   Select,
 } from '@/components/ui'
 import { EmojiPicker } from '@/components/shared'
-import { useCreateIngredient, useUpdateIngredient } from '@/hooks'
+import { useCreateIngredient, useUpdateIngredient, useStores } from '@/hooks'
 import { useUIStore } from '@/stores'
 import { INGREDIENT_CATEGORIES, SERVING_UNITS } from '@/lib/constants'
 import type { Ingredient, IngredientCategory } from '@/types/database'
@@ -25,6 +25,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
   const addToast = useUIStore((state) => state.addToast)
   const createIngredient = useCreateIngredient()
   const updateIngredient = useUpdateIngredient()
+  const { data: stores } = useStores()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,6 +37,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
     protein: 0,
     carbs: 0,
     fat: 0,
+    default_store_id: '' as string,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -52,6 +54,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
         protein: ingredient.protein,
         carbs: ingredient.carbs,
         fat: ingredient.fat,
+        default_store_id: ingredient.default_store_id || '',
       })
     }
   }, [ingredient])
@@ -79,14 +82,19 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
     if (!validate()) return
 
     try {
+      const submitData = {
+        ...formData,
+        default_store_id: formData.default_store_id || null,
+      }
+      
       if (ingredient) {
         await updateIngredient.mutateAsync({
           id: ingredient.id,
-          ...formData,
+          ...submitData,
         })
         addToast('Ingredient updated successfully', 'success')
       } else {
-        await createIngredient.mutateAsync(formData)
+        await createIngredient.mutateAsync(submitData)
         addToast('Ingredient created successfully', 'success')
       }
       onClose()
@@ -139,6 +147,21 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
                 value: c.value,
                 label: `${c.emoji} ${c.label}`,
               }))}
+            />
+
+            <Select
+              label="Default Store (optional)"
+              value={formData.default_store_id}
+              onChange={(e) =>
+                setFormData({ ...formData, default_store_id: e.target.value })
+              }
+              placeholder="Select a store..."
+              options={
+                stores?.map((s) => ({
+                  value: s.id,
+                  label: `${s.emoji || '🏪'} ${s.name}`,
+                })) || []
+              }
             />
 
             <div className="grid grid-cols-2 gap-4">
