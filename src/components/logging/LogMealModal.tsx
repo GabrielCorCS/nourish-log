@@ -16,11 +16,16 @@ import { ServingSizeInput } from './ServingSizeInput'
 import { NutritionPreview } from './NutritionPreview'
 import { useLogMealStore, useUIStore } from '@/stores'
 import { useCreateFoodEntry } from '@/hooks'
+import { useHousehold } from '@/hooks/useHousehold'
+import { servingsEquivalent } from '@/lib/nutrition'
+import { cn } from '@/lib/utils'
 
 export function LogMealModal() {
   const { isLogMealModalOpen, closeLogMealModal } = useUIStore()
   const addToast = useUIStore((state) => state.addToast)
   const createFoodEntry = useCreateFoodEntry()
+  const { data: household } = useHousehold()
+  const partner = household?.partner ?? null
 
   const {
     step,
@@ -31,6 +36,8 @@ export function LogMealModal() {
     selectedIngredients,
     servings,
     notes,
+    subjectUserId,
+    setSubject,
     totalCalories,
     totalProtein,
     totalCarbs,
@@ -88,9 +95,12 @@ export function LogMealModal() {
           source === 'quick-add'
             ? selectedIngredients.map((si) => ({
                 ingredientId: si.ingredient.id,
-                quantity: si.quantity,
+                amount: si.amount,
+                unit: si.unit,
+                quantity: servingsEquivalent(si.ingredient, si.amount, si.unit),
               }))
             : undefined,
+        subjectUserId: subjectUserId ?? undefined,
       })
 
       addToast('Meal logged successfully!', 'success')
@@ -146,6 +156,38 @@ export function LogMealModal() {
             <DialogTitle>{getStepTitle()}</DialogTitle>
           </div>
         </DialogHeader>
+
+        {partner && (
+          <div className="flex items-center gap-2 px-1 pt-1 pb-2 text-sm">
+            <span className="text-espresso/50">Logging for</span>
+            <div className="flex rounded-input border border-latte overflow-hidden">
+              <button
+                type="button"
+                className={cn(
+                  'px-3 py-1 transition-colors',
+                  !subjectUserId
+                    ? 'bg-caramel/15 text-caramel font-medium'
+                    : 'text-espresso/60'
+                )}
+                onClick={() => setSubject(null)}
+              >
+                You
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'px-3 py-1 transition-colors',
+                  subjectUserId === partner.id
+                    ? 'bg-caramel/15 text-caramel font-medium'
+                    : 'text-espresso/60'
+                )}
+                onClick={() => setSubject(partner.id)}
+              >
+                {partner.avatar_emoji || '👤'} {partner.name}
+              </button>
+            </div>
+          </div>
+        )}
 
         <DialogBody>
           {step === 'meal-type' && <MealTypeSelector />}

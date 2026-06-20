@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDayRange, toISODateString } from '@/lib/dates'
+import type { AmountUnit } from '@/lib/nutrition'
 import type {
   FoodEntry,
   FoodEntryInsert,
@@ -12,15 +13,17 @@ import type {
 
 const FOOD_ENTRIES_KEY = ['food-entries']
 
-export function useFoodEntriesByDate(date: Date) {
+// Personal logs are now visible household-wide (RLS), so queries MUST scope to a
+// subject user_id. Pass `targetUserId` to read the partner's day (proxy/partner views).
+export function useFoodEntriesByDate(date: Date, targetUserId?: string) {
   const { user } = useAuth()
-  const userId = user?.id
+  const subjectId = targetUserId ?? user?.id
   const dateStr = toISODateString(date)
 
   return useQuery({
-    queryKey: [...FOOD_ENTRIES_KEY, userId, dateStr],
+    queryKey: [...FOOD_ENTRIES_KEY, subjectId, dateStr],
     queryFn: async () => {
-      if (!userId) return []
+      if (!subjectId) return []
 
       const { start, end } = getDayRange(date)
 
@@ -36,6 +39,7 @@ export function useFoodEntriesByDate(date: Date) {
           )
         `
         )
+        .eq('user_id', subjectId)
         .gte('logged_at', start)
         .lte('logged_at', end)
         .order('logged_at', { ascending: true })
@@ -43,7 +47,7 @@ export function useFoodEntriesByDate(date: Date) {
       if (error) throw error
       return data as FoodEntryWithDetails[]
     },
-    enabled: !!userId,
+    enabled: !!subjectId,
   })
 }
 
@@ -72,6 +76,7 @@ export function useWeeklyEntries(startDate: Date, endDate: Date) {
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
+        .eq('user_id', userId)
         .gte('logged_at', start)
         .lte('logged_at', end)
         .order('logged_at', { ascending: true })
@@ -85,7 +90,11 @@ export function useWeeklyEntries(startDate: Date, endDate: Date) {
 
 interface CreateFoodEntryInput {
   entry: Omit<FoodEntryInsert, 'user_id'>
-  ingredients?: { ingredientId: string; quantity: number }[]
+  // amount+unit drive the new scaling model; quantity (servings-equivalent) is
+  // kept for back-compat with the recipe trigger and older reads.
+  ingredients?: { ingredientId: string; amount: number; unit: AmountUnit; quantity: number }[]
+  // For proxy logging: whose log this belongs to (defaults to the current user).
+  subjectUserId?: string
 }
 
 export function useCreateFoodEntry() {
@@ -93,12 +102,12 @@ export function useCreateFoodEntry() {
   const { user } = useAuth()
 
   return useMutation({
-    mutationFn: async ({ entry, ingredients }: CreateFoodEntryInput) => {
+    mutationFn: async ({ entry, ingredients, subjectUserId }: CreateFoodEntryInput) => {
       if (!user) throw new Error('Not authenticated')
 
       const { data: newEntry, error: entryError } = await supabase
         .from('food_entries')
-        .insert({ ...entry, user_id: user.id })
+        .insert({ ...entry, user_id: subjectUserId ?? user.id, logged_by: user.id })
         .select()
         .single()
 
@@ -109,6 +118,8 @@ export function useCreateFoodEntry() {
           (ing) => ({
             food_entry_id: newEntry.id,
             ingredient_id: ing.ingredientId,
+            amount: ing.amount,
+            unit: ing.unit,
             quantity: ing.quantity,
           })
         )

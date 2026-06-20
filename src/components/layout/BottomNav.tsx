@@ -1,19 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import {
-  Home,
-  BookOpen,
-  ChefHat,
-  Package,
-  ShoppingCart,
-} from 'lucide-react'
+import { Home, BookOpen, ChefHat, Sparkles, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/journal', label: 'Journal', icon: BookOpen },
   { path: '/recipes', label: 'Recipes', icon: ChefHat },
-  { path: '/inventory', label: 'Inventory', icon: Package },
-  { path: '/shopping', label: 'Shop', icon: ShoppingCart },
+  { path: '/inspo', label: 'Inspo', icon: Sparkles },
+  { path: '/progress', label: 'Progress', icon: TrendingUp },
 ]
 
 export function BottomNav() {

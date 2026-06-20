@@ -126,3 +126,35 @@ export function useGoals() {
     },
   }
 }
+
+// Goals for an arbitrary household member (e.g. the partner) — for showing
+// each other's daily progress against their own targets.
+export function useGoalsFor(targetUserId?: string) {
+  const { user } = useAuth()
+  const userId = targetUserId ?? user?.id
+
+  const { data, isLoading } = useQuery({
+    queryKey: [...USER_SETTINGS_KEY, 'for', userId],
+    queryFn: async () => {
+      if (!userId) return null
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (error) throw error
+      return data as UserSettings | null
+    },
+    enabled: !!userId,
+  })
+
+  return {
+    isLoading,
+    goals: {
+      calories: data?.daily_calorie_goal ?? DEFAULT_GOALS.calories,
+      protein: data?.daily_protein_goal ?? DEFAULT_GOALS.protein,
+      carbs: data?.daily_carbs_goal ?? DEFAULT_GOALS.carbs,
+      fat: data?.daily_fat_goal ?? DEFAULT_GOALS.fat,
+    },
+  }
+}

@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { BookOpen } from 'lucide-react'
 import { EmptyState, LoadingState } from '@/components/shared'
 import { MealCard } from './MealCard'
+import { EditMealModal } from './EditMealModal'
 import { DailySummary } from './DailySummary'
 import { useFoodEntriesByDate, useDeleteFoodEntry, calculateDailyTotals } from '@/hooks'
 import { useUIStore } from '@/stores'
@@ -28,6 +30,7 @@ export function DayView({ date }: DayViewProps) {
   const { data: entries, isLoading } = useFoodEntriesByDate(date)
   const deleteEntry = useDeleteFoodEntry()
   const { addToast, openLogMealModal } = useUIStore()
+  const [editEntry, setEditEntry] = useState<FoodEntryWithDetails | null>(null)
 
   const handleDelete = async (entry: FoodEntryWithDetails) => {
     if (confirm('Delete this meal entry?')) {
@@ -89,6 +92,7 @@ export function DayView({ date }: DayViewProps) {
                   <MealCard
                     key={entry.id}
                     entry={entry}
+                    onEdit={setEditEntry}
                     onDelete={handleDelete}
                   />
                 ))}
@@ -97,6 +101,8 @@ export function DayView({ date }: DayViewProps) {
           )
         })}
       </div>
+
+      <EditMealModal entry={editEntry} onClose={() => setEditEntry(null)} />
     </div>
   )
 }

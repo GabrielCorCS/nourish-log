@@ -17,6 +17,7 @@ import {
   Invitations,
   Inventory,
   ShoppingList,
+  Inspo,
 } from '@/pages'
 
 const queryClient = new QueryClient({
@@ -95,6 +96,16 @@ function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <RecipeEditor />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inspo"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Inspo />
                   </AppShell>
                 </ProtectedRoute>
               }

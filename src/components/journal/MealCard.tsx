@@ -2,6 +2,7 @@ import { Edit2, Trash2 } from 'lucide-react'
 import { Card, Button } from '@/components/ui'
 import { MacroPills } from '@/components/shared'
 import { formatTime } from '@/lib/dates'
+import { useHousehold } from '@/hooks/useHousehold'
 import type { FoodEntryWithDetails } from '@/types/database'
 
 interface MealCardProps {
@@ -11,8 +12,13 @@ interface MealCardProps {
 }
 
 export function MealCard({ entry, onEdit, onDelete }: MealCardProps) {
+  const { data: household } = useHousehold()
   const name = entry.recipe?.name || 'Quick add'
   const emoji = entry.recipe?.emoji || '🥗'
+  const loggedByOther = entry.logged_by != null && entry.logged_by !== entry.user_id
+  const loggerName = loggedByOther
+    ? household?.members.find((m) => m.id === entry.logged_by)?.name ?? 'partner'
+    : null
 
   return (
     <Card variant="elevated" padding="sm" className="animate-fade-in">
@@ -25,6 +31,7 @@ export function MealCard({ entry, onEdit, onDelete }: MealCardProps) {
               <p className="text-xs text-espresso/50">
                 {formatTime(entry.logged_at)}
                 {entry.servings !== 1 && ` · ${entry.servings} servings`}
+                {loggerName && ` · by ${loggerName}`}
               </p>
             </div>
             <div className="flex gap-1 flex-shrink-0">

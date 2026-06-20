@@ -34,6 +34,8 @@ export {
   useGoals,
 } from './useUserSettings'
 
+export { useHousehold, useHouseholdId } from './useHousehold'
+
 export { useInvitations } from './useInvitations'
 export { useInventory } from './useInventory'
 export { useShoppingList } from './useShoppingList'

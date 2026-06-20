@@ -19,6 +19,7 @@ interface AuthContextType {
   isAdmin: boolean
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -71,8 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function fetchProfile(userId: string) {
+    // `app_users` is the canonical identity table (the redundant `profiles`
+    // table was removed in the overhaul). It is a superset of the old profile.
     const { data, error } = await supabase
-      .from('profiles')
+      .from('app_users')
       .select('*')
       .eq('id', userId)
       .single()
@@ -91,6 +94,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .maybeSingle()
 
     setIsAdmin(!error && data !== null)
+  }
+
+  async function refreshProfile() {
+    const { data: { user: current } } = await supabase.auth.getUser()
+    if (current) {
+      await fetchProfile(current.id)
+    }
   }
 
   async function signInWithGoogle() {
@@ -127,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         signInWithGoogle,
         signOut,
+        refreshProfile,
       }}
     >
       {children}
@@ -134,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

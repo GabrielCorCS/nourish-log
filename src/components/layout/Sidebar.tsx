@@ -5,6 +5,7 @@ import {
   ChefHat,
   Apple,
   TrendingUp,
+  Sparkles,
   Settings,
   UserPlus,
   Package,
@@ -13,20 +14,36 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useHousehold } from '@/hooks/useHousehold'
 import { Button } from '@/components/ui'
 
-const navItems = [
+const coreNav = [
   { path: '/', label: 'Dashboard', icon: Home },
   { path: '/journal', label: 'Journal', icon: BookOpen },
   { path: '/recipes', label: 'Recipes', icon: ChefHat },
+  { path: '/inspo', label: 'Inspo', icon: Sparkles },
+  { path: '/progress', label: 'Progress', icon: TrendingUp },
+]
+
+const groceryNav = [
   { path: '/pantry', label: 'Pantry', icon: Apple },
   { path: '/inventory', label: 'Inventory', icon: Package },
   { path: '/shopping', label: 'Shopping', icon: ShoppingCart },
-  { path: '/progress', label: 'Progress', icon: TrendingUp },
 ]
 
 export function Sidebar() {
   const { profile, isAdmin, signOut } = useAuth()
+  const { data: household } = useHousehold()
+  const partner = household?.partner ?? null
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'flex items-center gap-3 px-4 py-3 rounded-button',
+      'text-sm font-medium transition-all duration-200',
+      isActive
+        ? 'bg-caramel/10 text-caramel'
+        : 'text-espresso/70 hover:bg-latte/30 hover:text-espresso'
+    )
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-warm-white border-r border-latte fixed left-0 top-0">
@@ -52,25 +69,33 @@ export function Sidebar() {
             </p>
           </div>
         </div>
+        {partner && (
+          <p className="mt-2 text-xs text-espresso/40 truncate">
+            shared with {partner.avatar_emoji || '👤'} {partner.name}
+          </p>
+        )}
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-1">
-          {navItems.map((item) => (
+          {coreNav.map((item) => (
             <li key={item.path}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-button',
-                    'text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-caramel/10 text-caramel'
-                      : 'text-espresso/70 hover:bg-latte/30 hover:text-espresso'
-                  )
-                }
-              >
+              <NavLink to={item.path} className={linkClass}>
+                <item.icon className="h-5 w-5" />
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-6 mb-2 px-4 text-xs font-medium uppercase tracking-wide text-espresso/40">
+          Groceries
+        </div>
+        <ul className="space-y-1">
+          {groceryNav.map((item) => (
+            <li key={item.path}>
+              <NavLink to={item.path} className={linkClass}>
                 <item.icon className="h-5 w-5" />
                 {item.label}
               </NavLink>

@@ -5,12 +5,13 @@ import { EmojiPicker, MacroDisplay } from '@/components/shared'
 import { IngredientPicker } from './IngredientPicker'
 import { useCreateRecipe, useUpdateRecipe, useRecipe } from '@/hooks'
 import { useUIStore } from '@/stores'
-import { calculateRecipeNutrition } from '@/lib/nutrition'
+import { scaleIngredient, servingsEquivalent, type AmountUnit } from '@/lib/nutrition'
 import type { Ingredient } from '@/types/database'
 
 interface SelectedIngredient {
   ingredient: Ingredient
-  quantity: number
+  amount: number
+  unit: AmountUnit
 }
 
 interface RecipeFormProps {
@@ -59,7 +60,8 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
       setSelectedIngredients(
         existingRecipe.recipe_ingredients.map((ri) => ({
           ingredient: ri.ingredient,
-          quantity: ri.quantity,
+          amount: ri.amount ?? ri.quantity,
+          unit: (ri.unit as AmountUnit) ?? 'serving',
         }))
       )
     }
@@ -67,7 +69,18 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
 
   // Calculate nutrition totals
   const nutrition = useMemo(() => {
-    return calculateRecipeNutrition(selectedIngredients)
+    return selectedIngredients.reduce(
+      (acc, { ingredient, amount, unit }) => {
+        const n = scaleIngredient(ingredient, amount, unit)
+        return {
+          calories: acc.calories + n.calories,
+          protein: acc.protein + n.protein,
+          carbs: acc.carbs + n.carbs,
+          fat: acc.fat + n.fat,
+        }
+      },
+      { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    )
   }, [selectedIngredients])
 
   const perServing = useMemo(() => {
@@ -80,8 +93,12 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
     }
   }, [nutrition, formData.servings])
 
-  const handleAddIngredient = (ingredient: Ingredient, quantity: number) => {
-    setSelectedIngredients((prev) => [...prev, { ingredient, quantity }])
+  const handleAddIngredient = (
+    ingredient: Ingredient,
+    amount: number,
+    unit: AmountUnit
+  ) => {
+    setSelectedIngredients((prev) => [...prev, { ingredient, amount, unit }])
   }
 
   const handleRemoveIngredient = (ingredientId: string) => {
@@ -90,10 +107,13 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
     )
   }
 
-  const handleUpdateQuantity = (ingredientId: string, quantity: number) => {
+  const handleUpdateIngredient = (
+    ingredientId: string,
+    patch: { amount?: number; unit?: AmountUnit }
+  ) => {
     setSelectedIngredients((prev) =>
       prev.map((si) =>
-        si.ingredient.id === ingredientId ? { ...si, quantity } : si
+        si.ingredient.id === ingredientId ? { ...si, ...patch } : si
       )
     )
   }
@@ -131,7 +151,9 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
 
       const ingredients = selectedIngredients.map((si) => ({
         ingredientId: si.ingredient.id,
-        quantity: si.quantity,
+        amount: si.amount,
+        unit: si.unit,
+        quantity: servingsEquivalent(si.ingredient, si.amount, si.unit),
       }))
 
       if (recipeId) {
@@ -252,7 +274,7 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
           selectedIngredients={selectedIngredients}
           onAdd={handleAddIngredient}
           onRemove={handleRemoveIngredient}
-          onUpdateQuantity={handleUpdateQuantity}
+          onUpdate={handleUpdateIngredient}
         />
       </Card>
 

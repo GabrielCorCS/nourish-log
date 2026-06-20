@@ -1,429 +1,66 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+// Convenience types for the app, derived from the generated Supabase schema.
+// Single source of truth = src/integrations/supabase/types.ts (regenerated from
+// the live database). This file only re-exports friendly aliases + relation shapes.
+import type { Database, Json } from '@/integrations/supabase/types'
 
-export type IngredientCategory =
-  | 'proteins'
-  | 'grains'
-  | 'vegetables'
-  | 'fruits'
-  | 'dairy'
-  | 'fats'
-  | 'legumes'
-  | 'nuts'
-  | 'condiments'
-  | 'beverages'
+export type { Database, Json }
 
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+export type IngredientCategory = Database['public']['Enums']['ingredient_category']
+export type MealType = Database['public']['Enums']['meal_type']
 
-export interface Database {
-  public: {
-    Tables: {
-      app_users: {
-        Row: {
-          id: string
-          email: string
-          name: string
-          avatar_emoji: string | null
-          is_admin: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          name: string
-          avatar_emoji?: string | null
-          is_admin?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          name?: string
-          avatar_emoji?: string | null
-          is_admin?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      ingredients: {
-        Row: {
-          id: string
-          user_id: string | null
-          name: string
-          emoji: string | null
-          category: IngredientCategory
-          serving_size: number
-          serving_unit: string
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          is_default: boolean
-          default_store_id: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          name: string
-          emoji?: string | null
-          category: IngredientCategory
-          serving_size: number
-          serving_unit: string
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          is_default?: boolean
-          default_store_id?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          name?: string
-          emoji?: string | null
-          category?: IngredientCategory
-          serving_size?: number
-          serving_unit?: string
-          calories?: number
-          protein?: number
-          carbs?: number
-          fat?: number
-          is_default?: boolean
-          default_store_id?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      stores: {
-        Row: {
-          id: string
-          user_id: string
-          name: string
-          emoji: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          name: string
-          emoji?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          name?: string
-          emoji?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      grocery_purchases: {
-        Row: {
-          id: string
-          user_id: string
-          ingredient_id: string | null
-          store_id: string | null
-          quantity: number
-          unit: string
-          price: number
-          purchased_at: string
-          notes: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          ingredient_id?: string | null
-          store_id?: string | null
-          quantity?: number
-          unit?: string
-          price?: number
-          purchased_at?: string
-          notes?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          ingredient_id?: string | null
-          store_id?: string | null
-          quantity?: number
-          unit?: string
-          price?: number
-          purchased_at?: string
-          notes?: string | null
-          created_at?: string
-        }
-      }
-      recipes: {
-        Row: {
-          id: string
-          user_id: string
-          name: string
-          emoji: string | null
-          description: string | null
-          instructions: string | null
-          servings: number
-          prep_time: number | null
-          cook_time: number | null
-          total_calories: number
-          total_protein: number
-          total_carbs: number
-          total_fat: number
-          is_favorite: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          name: string
-          emoji?: string | null
-          description?: string | null
-          instructions?: string | null
-          servings?: number
-          prep_time?: number | null
-          cook_time?: number | null
-          total_calories?: number
-          total_protein?: number
-          total_carbs?: number
-          total_fat?: number
-          is_favorite?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          name?: string
-          emoji?: string | null
-          description?: string | null
-          instructions?: string | null
-          servings?: number
-          prep_time?: number | null
-          cook_time?: number | null
-          total_calories?: number
-          total_protein?: number
-          total_carbs?: number
-          total_fat?: number
-          is_favorite?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      recipe_ingredients: {
-        Row: {
-          id: string
-          recipe_id: string
-          ingredient_id: string
-          quantity: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          recipe_id: string
-          ingredient_id: string
-          quantity: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          recipe_id?: string
-          ingredient_id?: string
-          quantity?: number
-          created_at?: string
-        }
-      }
-      food_entries: {
-        Row: {
-          id: string
-          user_id: string
-          recipe_id: string | null
-          meal_type: MealType
-          servings: number
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          notes: string | null
-          logged_at: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          recipe_id?: string | null
-          meal_type: MealType
-          servings?: number
-          calories: number
-          protein: number
-          carbs: number
-          fat: number
-          notes?: string | null
-          logged_at?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          recipe_id?: string | null
-          meal_type?: MealType
-          servings?: number
-          calories?: number
-          protein?: number
-          carbs?: number
-          fat?: number
-          notes?: string | null
-          logged_at?: string
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      food_entry_ingredients: {
-        Row: {
-          id: string
-          food_entry_id: string
-          ingredient_id: string
-          quantity: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          food_entry_id: string
-          ingredient_id: string
-          quantity: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          food_entry_id?: string
-          ingredient_id?: string
-          quantity?: number
-          created_at?: string
-        }
-      }
-      user_settings: {
-        Row: {
-          id: string
-          user_id: string
-          daily_calorie_goal: number
-          daily_protein_goal: number
-          daily_carbs_goal: number
-          daily_fat_goal: number
-          theme: string
-          notifications_enabled: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          daily_calorie_goal?: number
-          daily_protein_goal?: number
-          daily_carbs_goal?: number
-          daily_fat_goal?: number
-          theme?: string
-          notifications_enabled?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          daily_calorie_goal?: number
-          daily_protein_goal?: number
-          daily_carbs_goal?: number
-          daily_fat_goal?: number
-          theme?: string
-          notifications_enabled?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      user_streaks: {
-        Row: {
-          id: string
-          user_id: string
-          current_streak: number
-          longest_streak: number
-          last_logged_date: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          current_streak?: number
-          longest_streak?: number
-          last_logged_date?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          current_streak?: number
-          longest_streak?: number
-          last_logged_date?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-    }
-  }
-}
+type Tables = Database['public']['Tables']
 
-// Convenience types
-export type AppUser = Database['public']['Tables']['app_users']['Row']
-export type AppUserInsert = Database['public']['Tables']['app_users']['Insert']
-export type AppUserUpdate = Database['public']['Tables']['app_users']['Update']
+export type AppUser = Tables['app_users']['Row']
+export type AppUserInsert = Tables['app_users']['Insert']
+export type AppUserUpdate = Tables['app_users']['Update']
 
-export type Ingredient = Database['public']['Tables']['ingredients']['Row']
-export type IngredientInsert = Database['public']['Tables']['ingredients']['Insert']
-export type IngredientUpdate = Database['public']['Tables']['ingredients']['Update']
+export type Ingredient = Tables['ingredients']['Row']
+export type IngredientInsert = Tables['ingredients']['Insert']
+export type IngredientUpdate = Tables['ingredients']['Update']
 
-export type Recipe = Database['public']['Tables']['recipes']['Row']
-export type RecipeInsert = Database['public']['Tables']['recipes']['Insert']
-export type RecipeUpdate = Database['public']['Tables']['recipes']['Update']
+export type Recipe = Tables['recipes']['Row']
+export type RecipeInsert = Tables['recipes']['Insert']
+export type RecipeUpdate = Tables['recipes']['Update']
 
-export type RecipeIngredient = Database['public']['Tables']['recipe_ingredients']['Row']
-export type RecipeIngredientInsert = Database['public']['Tables']['recipe_ingredients']['Insert']
+export type RecipeIngredient = Tables['recipe_ingredients']['Row']
+export type RecipeIngredientInsert = Tables['recipe_ingredients']['Insert']
 
-export type FoodEntry = Database['public']['Tables']['food_entries']['Row']
-export type FoodEntryInsert = Database['public']['Tables']['food_entries']['Insert']
-export type FoodEntryUpdate = Database['public']['Tables']['food_entries']['Update']
+export type FoodEntry = Tables['food_entries']['Row']
+export type FoodEntryInsert = Tables['food_entries']['Insert']
+export type FoodEntryUpdate = Tables['food_entries']['Update']
 
-export type FoodEntryIngredient = Database['public']['Tables']['food_entry_ingredients']['Row']
-export type FoodEntryIngredientInsert = Database['public']['Tables']['food_entry_ingredients']['Insert']
+export type FoodEntryIngredient = Tables['food_entry_ingredients']['Row']
+export type FoodEntryIngredientInsert = Tables['food_entry_ingredients']['Insert']
 
-export type UserSettings = Database['public']['Tables']['user_settings']['Row']
-export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update']
+export type UserSettings = Tables['user_settings']['Row']
+export type UserSettingsUpdate = Tables['user_settings']['Update']
 
-export type UserStreak = Database['public']['Tables']['user_streaks']['Row']
+export type UserStreak = Tables['user_streaks']['Row']
 
-export type Store = Database['public']['Tables']['stores']['Row']
-export type StoreInsert = Database['public']['Tables']['stores']['Insert']
-export type StoreUpdate = Database['public']['Tables']['stores']['Update']
+export type Store = Tables['stores']['Row']
+export type StoreInsert = Tables['stores']['Insert']
+export type StoreUpdate = Tables['stores']['Update']
 
-export type GroceryPurchase = Database['public']['Tables']['grocery_purchases']['Row']
-export type GroceryPurchaseInsert = Database['public']['Tables']['grocery_purchases']['Insert']
-export type GroceryPurchaseUpdate = Database['public']['Tables']['grocery_purchases']['Update']
+export type GroceryPurchase = Tables['grocery_purchases']['Row']
+export type GroceryPurchaseInsert = Tables['grocery_purchases']['Insert']
+export type GroceryPurchaseUpdate = Tables['grocery_purchases']['Update']
+
+export type GroceryInventory = Tables['grocery_inventory']['Row']
+export type GroceryInventoryInsert = Tables['grocery_inventory']['Insert']
+export type GroceryInventoryUpdate = Tables['grocery_inventory']['Update']
+
+export type ShoppingListItem = Tables['shopping_list']['Row']
+export type ShoppingListItemInsert = Tables['shopping_list']['Insert']
+export type ShoppingListItemUpdate = Tables['shopping_list']['Update']
+
+// Sharing / household
+export type Household = Tables['households']['Row']
+export type HouseholdMember = Tables['household_members']['Row']
+
+// Shared inspiration / wishlist board
+export type WishlistItem = Tables['wishlist_items']['Row']
+export type WishlistItemInsert = Tables['wishlist_items']['Insert']
+export type WishlistItemUpdate = Tables['wishlist_items']['Update']
 
 // Extended types with relations
 export interface RecipeWithIngredients extends Recipe {
