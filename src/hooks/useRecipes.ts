@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useHouseholdId } from '@/hooks/useHousehold'
+import type { AmountUnit } from '@/lib/nutrition'
 import type {
   Recipe,
   RecipeInsert,
@@ -10,6 +12,13 @@ import type {
 } from '@/types/database'
 
 const RECIPES_KEY = ['recipes']
+
+interface RecipeIngredientItem {
+  ingredientId: string
+  amount: number
+  unit: AmountUnit
+  quantity: number
+}
 
 export function useRecipes(favoritesOnly?: boolean) {
   const { user } = useAuth()
@@ -64,21 +73,23 @@ export function useRecipe(id: string) {
 }
 
 interface CreateRecipeInput {
-  recipe: Omit<RecipeInsert, 'user_id'>
-  ingredients: { ingredientId: string; quantity: number }[]
+  recipe: Omit<RecipeInsert, 'user_id' | 'household_id'>
+  ingredients: RecipeIngredientItem[]
 }
 
 export function useCreateRecipe() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const householdId = useHouseholdId()
 
   return useMutation({
     mutationFn: async ({ recipe, ingredients }: CreateRecipeInput) => {
       if (!user) throw new Error('Not authenticated')
+      if (!householdId) throw new Error('No household found for this account')
 
       const { data: newRecipe, error: recipeError } = await supabase
         .from('recipes')
-        .insert({ ...recipe, user_id: user.id })
+        .insert({ ...recipe, user_id: user.id, household_id: householdId })
         .select()
         .single()
 
@@ -89,6 +100,8 @@ export function useCreateRecipe() {
           (ing) => ({
             recipe_id: newRecipe.id,
             ingredient_id: ing.ingredientId,
+            amount: ing.amount,
+            unit: ing.unit,
             quantity: ing.quantity,
           })
         )
@@ -111,7 +124,7 @@ export function useCreateRecipe() {
 interface UpdateRecipeInput {
   id: string
   recipe: RecipeUpdate
-  ingredients?: { ingredientId: string; quantity: number }[]
+  ingredients?: RecipeIngredientItem[]
 }
 
 export function useUpdateRecipe() {
@@ -136,6 +149,8 @@ export function useUpdateRecipe() {
             (ing) => ({
               recipe_id: id,
               ingredient_id: ing.ingredientId,
+              amount: ing.amount,
+              unit: ing.unit,
               quantity: ing.quantity,
             })
           )
