@@ -71,8 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function fetchProfile(userId: string) {
+    // `app_users` is the canonical identity table (the redundant `profiles`
+    // table was removed in the overhaul). It is a superset of the old profile.
     const { data, error } = await supabase
-      .from('profiles')
+      .from('app_users')
       .select('*')
       .eq('id', userId)
       .single()

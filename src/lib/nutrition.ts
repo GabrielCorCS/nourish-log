@@ -20,6 +20,49 @@ export function calculateIngredientNutrition(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Weight-aware scaling (the g/ml engine).
+// Ingredient macros are stored PER SERVING (serving_size of serving_unit).
+// `serving_grams` is the grams (or ml) in one serving, enabling exact g/ml entry.
+// ---------------------------------------------------------------------------
+export type AmountUnit = 'serving' | 'g' | 'ml'
+
+// grams (or ml) in one serving; falls back to serving_size when not explicitly set
+export function servingGramsOf(
+  ingredient: Pick<Ingredient, 'serving_grams' | 'serving_size'>
+): number {
+  return ingredient.serving_grams ?? ingredient.serving_size
+}
+
+// Whether the ingredient supports gram/ml entry (has a known weight per serving)
+export function supportsWeightEntry(
+  ingredient: Pick<Ingredient, 'serving_grams'>
+): boolean {
+  return ingredient.serving_grams != null && ingredient.serving_grams > 0
+}
+
+// How many "servings" a given amount+unit represents for an ingredient
+export function servingsEquivalent(
+  ingredient: Pick<Ingredient, 'serving_grams' | 'serving_size'>,
+  amount: number,
+  unit: AmountUnit
+): number {
+  if (unit === 'g' || unit === 'ml') {
+    const grams = servingGramsOf(ingredient)
+    return grams > 0 ? amount / grams : 0
+  }
+  return amount // 'serving'
+}
+
+// Scale an ingredient's per-serving macros to an arbitrary amount + unit
+export function scaleIngredient(
+  ingredient: Ingredient,
+  amount: number,
+  unit: AmountUnit = 'serving'
+): NutritionTotals {
+  return calculateIngredientNutrition(ingredient, servingsEquivalent(ingredient, amount, unit))
+}
+
 // Calculate total nutrition for a recipe (sum of all ingredients)
 export function calculateRecipeNutrition(
   recipeIngredients: { ingredient: Ingredient; quantity: number }[]
