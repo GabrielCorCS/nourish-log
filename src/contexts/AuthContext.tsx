@@ -19,6 +19,7 @@ interface AuthContextType {
   isAdmin: boolean
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -95,6 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(!error && data !== null)
   }
 
+  async function refreshProfile() {
+    const { data: { user: current } } = await supabase.auth.getUser()
+    if (current) {
+      await fetchProfile(current.id)
+    }
+  }
+
   async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -129,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         signInWithGoogle,
         signOut,
+        refreshProfile,
       }}
     >
       {children}
@@ -136,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

@@ -12,15 +12,17 @@ import type {
 
 const FOOD_ENTRIES_KEY = ['food-entries']
 
-export function useFoodEntriesByDate(date: Date) {
+// Personal logs are now visible household-wide (RLS), so queries MUST scope to a
+// subject user_id. Pass `targetUserId` to read the partner's day (proxy/partner views).
+export function useFoodEntriesByDate(date: Date, targetUserId?: string) {
   const { user } = useAuth()
-  const userId = user?.id
+  const subjectId = targetUserId ?? user?.id
   const dateStr = toISODateString(date)
 
   return useQuery({
-    queryKey: [...FOOD_ENTRIES_KEY, userId, dateStr],
+    queryKey: [...FOOD_ENTRIES_KEY, subjectId, dateStr],
     queryFn: async () => {
-      if (!userId) return []
+      if (!subjectId) return []
 
       const { start, end } = getDayRange(date)
 
@@ -36,6 +38,7 @@ export function useFoodEntriesByDate(date: Date) {
           )
         `
         )
+        .eq('user_id', subjectId)
         .gte('logged_at', start)
         .lte('logged_at', end)
         .order('logged_at', { ascending: true })
@@ -43,7 +46,7 @@ export function useFoodEntriesByDate(date: Date) {
       if (error) throw error
       return data as FoodEntryWithDetails[]
     },
-    enabled: !!userId,
+    enabled: !!subjectId,
   })
 }
 
@@ -72,6 +75,7 @@ export function useWeeklyEntries(startDate: Date, endDate: Date) {
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
+        .eq('user_id', userId)
         .gte('logged_at', start)
         .lte('logged_at', end)
         .order('logged_at', { ascending: true })

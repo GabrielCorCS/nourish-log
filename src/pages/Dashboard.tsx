@@ -6,6 +6,7 @@ import {
   QuickActions,
   MealTimeline,
   StreakCard,
+  PartnerSummary,
 } from '@/components/dashboard'
 import { LogMealModal } from '@/components/logging'
 import { useUIStore } from '@/stores'
@@ -32,6 +33,7 @@ export function Dashboard() {
           <MealTimeline />
         </div>
         <div className="space-y-6">
+          <PartnerSummary />
           <QuickActions />
           <StreakCard />
         </div>

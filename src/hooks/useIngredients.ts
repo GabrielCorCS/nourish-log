@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useHouseholdId } from '@/hooks/useHousehold'
 import type {
   Ingredient,
   IngredientInsert,
@@ -56,14 +57,29 @@ export function useIngredient(id: string) {
 export function useCreateIngredient() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const householdId = useHouseholdId()
 
   return useMutation({
-    mutationFn: async (ingredient: Omit<IngredientInsert, 'user_id'>) => {
+    mutationFn: async (
+      ingredient: Omit<IngredientInsert, 'user_id' | 'household_id'>
+    ) => {
       if (!user) throw new Error('Not authenticated')
+      // RLS requires household_id on insert now that ingredients are a shared
+      // household library. Prefer an explicit value on the draft, else the
+      // current user's household.
+      const resolvedHouseholdId =
+        (ingredient as IngredientInsert).household_id ?? householdId
+      if (!resolvedHouseholdId) {
+        throw new Error('No household found for the current user')
+      }
 
       const { data, error } = await supabase
         .from('ingredients')
-        .insert({ ...ingredient, user_id: user.id })
+        .insert({
+          ...ingredient,
+          user_id: user.id,
+          household_id: resolvedHouseholdId,
+        })
         .select()
         .single()
 

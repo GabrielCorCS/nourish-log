@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { Plus, Minus, Search, X } from 'lucide-react'
-import { Input, Button, Card } from '@/components/ui'
-import { useIngredients } from '@/hooks'
+import { Plus, Minus, X } from 'lucide-react'
+import { Button } from '@/components/ui'
+import { IngredientSearch } from '@/components/ingredients/IngredientSearch'
 import type { Ingredient } from '@/types/database'
 
 interface SelectedIngredient {
@@ -22,60 +21,21 @@ export function IngredientPicker({
   onRemove,
   onUpdateQuantity,
 }: IngredientPickerProps) {
-  const [search, setSearch] = useState('')
-  const { data: ingredients } = useIngredients()
-
-  const filteredIngredients = ingredients?.filter(
-    (ingredient) =>
-      ingredient.name.toLowerCase().includes(search.toLowerCase()) &&
-      !selectedIngredients.find((si) => si.ingredient.id === ingredient.id)
-  )
-
-  const handleAdd = (ingredient: Ingredient) => {
+  const handleSelect = (ingredient: Ingredient) => {
+    if (selectedIngredients.find((si) => si.ingredient.id === ingredient.id)) {
+      return
+    }
     onAdd(ingredient, 1)
-    setSearch('')
   }
 
   return (
     <div className="space-y-4">
       {/* Search and Add */}
-      <div className="relative">
-        <Input
-          placeholder="Search ingredients to add..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          leftIcon={<Search className="h-4 w-4" />}
-        />
-
-        {search && filteredIngredients && filteredIngredients.length > 0 && (
-          <Card
-            variant="elevated"
-            padding="none"
-            className="absolute top-full left-0 right-0 mt-1 z-10 max-h-48 overflow-y-auto"
-          >
-            {filteredIngredients.slice(0, 10).map((ingredient) => (
-              <button
-                key={ingredient.id}
-                type="button"
-                onClick={() => handleAdd(ingredient)}
-                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-latte/20 transition-colors text-left"
-              >
-                <span>{ingredient.emoji || '🍽️'}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-espresso truncate">
-                    {ingredient.name}
-                  </p>
-                  <p className="text-xs text-espresso/50">
-                    {ingredient.calories} cal · {ingredient.serving_size}{' '}
-                    {ingredient.serving_unit}
-                  </p>
-                </div>
-                <Plus className="h-4 w-4 text-caramel flex-shrink-0" />
-              </button>
-            ))}
-          </Card>
-        )}
-      </div>
+      <IngredientSearch
+        onSelect={handleSelect}
+        placeholder="Search ingredients to add..."
+        excludeIds={selectedIngredients.map((si) => si.ingredient.id)}
+      />
 
       {/* Selected Ingredients */}
       {selectedIngredients.length > 0 && (
