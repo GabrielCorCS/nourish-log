@@ -62,6 +62,11 @@ export type WishlistItem = Tables['wishlist_items']['Row']
 export type WishlistItemInsert = Tables['wishlist_items']['Insert']
 export type WishlistItemUpdate = Tables['wishlist_items']['Update']
 
+// Body metrics (weight / body composition) — Renpho scaffold
+export type BodyMetric = Tables['body_metrics']['Row']
+export type BodyMetricInsert = Tables['body_metrics']['Insert']
+export type BodyMetricSource = Database['public']['Enums']['body_metric_source']
+
 // Extended types with relations
 export interface RecipeWithIngredients extends Recipe {
   recipe_ingredients: (RecipeIngredient & {

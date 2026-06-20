@@ -44,6 +44,72 @@ export type Database = {
         }
         Relationships: []
       }
+      body_metrics: {
+        Row: {
+          bmi: number | null
+          body_fat_pct: number | null
+          bone_mass_kg: number | null
+          created_at: string
+          id: string
+          logged_by: string | null
+          measured_at: string
+          muscle_mass_kg: number | null
+          notes: string | null
+          raw: Json | null
+          source: Database["public"]["Enums"]["body_metric_source"]
+          user_id: string
+          water_pct: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          bmi?: number | null
+          body_fat_pct?: number | null
+          bone_mass_kg?: number | null
+          created_at?: string
+          id?: string
+          logged_by?: string | null
+          measured_at?: string
+          muscle_mass_kg?: number | null
+          notes?: string | null
+          raw?: Json | null
+          source?: Database["public"]["Enums"]["body_metric_source"]
+          user_id: string
+          water_pct?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          bmi?: number | null
+          body_fat_pct?: number | null
+          bone_mass_kg?: number | null
+          created_at?: string
+          id?: string
+          logged_by?: string | null
+          measured_at?: string
+          muscle_mass_kg?: number | null
+          notes?: string | null
+          raw?: Json | null
+          source?: Database["public"]["Enums"]["body_metric_source"]
+          user_id?: string
+          water_pct?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "body_metrics_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "body_metrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       food_entries: {
         Row: {
           calories: number
@@ -691,6 +757,7 @@ export type Database = {
           theme: string
           updated_at: string
           user_id: string
+          weight_unit: string
         }
         Insert: {
           created_at?: string
@@ -703,6 +770,7 @@ export type Database = {
           theme?: string
           updated_at?: string
           user_id: string
+          weight_unit?: string
         }
         Update: {
           created_at?: string
@@ -715,6 +783,7 @@ export type Database = {
           theme?: string
           updated_at?: string
           user_id?: string
+          weight_unit?: string
         }
         Relationships: [
           {
@@ -862,6 +931,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      body_metric_source:
+        | "manual"
+        | "renpho"
+        | "apple_health"
+        | "google_fit"
+        | "health_connect"
       ingredient_category:
         | "proteins"
         | "grains"
@@ -1002,6 +1077,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      body_metric_source: [
+        "manual",
+        "renpho",
+        "apple_health",
+        "google_fit",
+        "health_connect",
+      ],
       ingredient_category: [
         "proteins",
         "grains",

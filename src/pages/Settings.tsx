@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useHouseholdActions'
 import { useAuth } from '@/contexts/AuthContext'
 import { useUIStore } from '@/stores'
+import { cn } from '@/lib/utils'
 
 export function Settings() {
   const navigate = useNavigate()
@@ -281,6 +282,38 @@ export function Settings() {
             <Button onClick={handleSaveGoals} isLoading={updateSettings.isPending}>
               Save Changes
             </Button>
+          </div>
+        </Card>
+
+        {/* Units */}
+        <Card variant="elevated" padding="lg">
+          <h2 className="font-heading text-lg font-semibold text-espresso mb-4">Units</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-espresso/70">Weight</span>
+            <div className="flex rounded-input border border-latte overflow-hidden text-sm">
+              {(['lb', 'kg'] as const).map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  className={cn(
+                    'px-4 py-1.5 transition-colors',
+                    (settings?.weight_unit ?? 'lb') === u
+                      ? 'bg-caramel/15 text-caramel font-medium'
+                      : 'text-espresso/60'
+                  )}
+                  onClick={async () => {
+                    try {
+                      await updateSettings.mutateAsync({ weight_unit: u })
+                      addToast('Units updated', 'success')
+                    } catch {
+                      addToast('Failed to update units', 'error')
+                    }
+                  }}
+                >
+                  {u}
+                </button>
+              ))}
+            </div>
           </div>
         </Card>
 
