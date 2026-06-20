@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useHousehold } from '@/hooks/useHousehold'
 import { Button } from '@/components/ui'
 
 const coreNav = [
@@ -32,6 +33,8 @@ const groceryNav = [
 
 export function Sidebar() {
   const { profile, isAdmin, signOut } = useAuth()
+  const { data: household } = useHousehold()
+  const partner = household?.partner ?? null
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -66,6 +69,11 @@ export function Sidebar() {
             </p>
           </div>
         </div>
+        {partner && (
+          <p className="mt-2 text-xs text-espresso/40 truncate">
+            shared with {partner.avatar_emoji || '👤'} {partner.name}
+          </p>
+        )}
       </div>
 
       {/* Navigation */}
