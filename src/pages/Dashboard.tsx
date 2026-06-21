@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { PageContainer } from '@/components/layout'
 import { Button } from '@/components/ui'
@@ -10,7 +11,7 @@ import {
   QuickAdd,
 } from '@/components/dashboard'
 import { LogMealModal } from '@/components/logging'
-import { useUIStore } from '@/stores'
+import { useUIStore, useViewStore } from '@/stores'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDate } from '@/lib/dates'
 
@@ -23,8 +24,15 @@ function getGreeting() {
 
 export function Dashboard() {
   const openLogMealModal = useUIStore((state) => state.openLogMealModal)
+  const setViewUser = useViewStore((s) => s.setViewUser)
   const { profile } = useAuth()
   const firstName = profile?.name?.trim().split(/\s+/)[0] || 'there'
+
+  // The dashboard is always *your* home — clear any active "viewing partner"
+  // state so it never opens showing the other person's day.
+  useEffect(() => {
+    setViewUser(null)
+  }, [setViewUser])
 
   return (
     <PageContainer>

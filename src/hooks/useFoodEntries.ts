@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useViewStore } from '@/stores/viewStore'
 import { getDayRange, toISODateString } from '@/lib/dates'
 import type { AmountUnit } from '@/lib/nutrition'
 import type {
@@ -17,7 +18,9 @@ const FOOD_ENTRIES_KEY = ['food-entries']
 // subject user_id. Pass `targetUserId` to read the partner's day (proxy/partner views).
 export function useFoodEntriesByDate(date: Date, targetUserId?: string) {
   const { user } = useAuth()
-  const subjectId = targetUserId ?? user?.id
+  const viewUserId = useViewStore((s) => s.viewUserId)
+  // Explicit target (e.g. partner card) wins; otherwise follow the global view toggle.
+  const subjectId = targetUserId ?? viewUserId ?? user?.id
   const dateStr = toISODateString(date)
 
   return useQuery({
@@ -57,7 +60,8 @@ export function useTodayEntries() {
 
 export function useWeeklyEntries(startDate: Date, endDate: Date) {
   const { user } = useAuth()
-  const userId = user?.id
+  const viewUserId = useViewStore((s) => s.viewUserId)
+  const userId = viewUserId ?? user?.id
 
   return useQuery({
     queryKey: [

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useViewStore } from '@/stores/viewStore'
 import { DEFAULT_GOALS } from '@/lib/constants'
 import type { UserSettings, UserSettingsUpdate, UserStreak } from '@/types/database'
 
@@ -77,7 +78,8 @@ export function useUpdateUserSettings() {
 
 export function useUserStreak() {
   const { user } = useAuth()
-  const userId = user?.id
+  const viewUserId = useViewStore((s) => s.viewUserId)
+  const userId = viewUserId ?? user?.id
 
   return useQuery({
     queryKey: [...USER_STREAKS_KEY, userId],
@@ -113,18 +115,12 @@ export function useUserStreak() {
   })
 }
 
+// Goals for whoever the UI is currently viewing (follows the global toggle).
+// Note: useUserSettings (above) stays self-scoped so the Settings page always
+// edits your own goals.
 export function useGoals() {
-  const { data: settings, isLoading } = useUserSettings()
-
-  return {
-    isLoading,
-    goals: {
-      calories: settings?.daily_calorie_goal ?? DEFAULT_GOALS.calories,
-      protein: settings?.daily_protein_goal ?? DEFAULT_GOALS.protein,
-      carbs: settings?.daily_carbs_goal ?? DEFAULT_GOALS.carbs,
-      fat: settings?.daily_fat_goal ?? DEFAULT_GOALS.fat,
-    },
-  }
+  const viewUserId = useViewStore((s) => s.viewUserId)
+  return useGoalsFor(viewUserId ?? undefined)
 }
 
 // Goals for an arbitrary household member (e.g. the partner) — for showing

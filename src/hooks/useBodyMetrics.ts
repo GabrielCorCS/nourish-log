@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useViewStore } from '@/stores/viewStore'
 import type { BodyMetric, BodyMetricSource } from '@/types/database'
 
 const KEY = ['body-metrics']
@@ -8,7 +9,8 @@ const KEY = ['body-metrics']
 // Pass targetUserId to view a household member's weigh-ins (partner view).
 export function useBodyMetrics(targetUserId?: string) {
   const { user } = useAuth()
-  const subjectId = targetUserId ?? user?.id
+  const viewUserId = useViewStore((s) => s.viewUserId)
+  const subjectId = targetUserId ?? viewUserId ?? user?.id
 
   return useQuery({
     queryKey: [...KEY, subjectId],

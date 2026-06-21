@@ -7,10 +7,13 @@ import {
   GoalProgress,
 } from '@/components/progress'
 import { WeightTracker } from '@/components/progress/WeightTracker'
+import { PersonToggle } from '@/components/shared'
 
 export function Progress() {
   return (
     <PageContainer>
+      <PersonToggle className="mb-4" />
+
       {/* Page header */}
       <div className="mb-6 flex items-end justify-between gap-4">
         <div className="min-w-0">

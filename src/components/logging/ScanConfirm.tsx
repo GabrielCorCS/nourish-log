@@ -1,11 +1,10 @@
+import { useState } from 'react'
 import { Minus, Plus, Check, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { useLogMealStore, useUIStore } from '@/stores'
 import { useCreateFoodEntry } from '@/hooks'
-import { offToIngredientDraft } from '@/lib/openfoodfacts'
+import { getOffServing, type OffMacros } from '@/lib/openfoodfacts'
 import { MEAL_TYPES } from '@/lib/constants'
-
-const QUICK_GRAMS = [50, 100, 150, 200, 250]
 
 const NUTRIENT_TILES = [
   { key: 'calories', label: 'Cal', tile: 'from-citrus/[0.14] to-terracotta/[0.06] ring-citrus/25', accent: 'text-[#C2410C]' },
@@ -14,29 +13,43 @@ const NUTRIENT_TILES = [
   { key: 'fat', label: 'Fat', tile: 'from-blush/[0.16] to-blush/[0.05] ring-blush/25', accent: 'text-[#C13C7E]' },
 ] as const
 
+const SERVING_PRESETS = [0.5, 1, 2, 3]
+const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(n < 10 ? 1 : 0))
+
 /**
- * Confirm + log a scanned Open Food Facts product. Nutrition is OFF's per-100g
- * data scaled by the chosen gram amount, logged as an ad-hoc food entry.
+ * Confirm + log a scanned product. Defaults to the label's serving (e.g.
+ * "1 can (355 ml)") with per-serving nutrition; falls back to grams only when
+ * Open Food Facts has no serving info.
  */
 export function ScanConfirm() {
-  const { scannedProduct, scanGrams, setScanGrams, mealType, subjectUserId, setStep, reset } =
-    useLogMealStore()
+  const { scannedProduct, mealType, subjectUserId, setStep, reset } = useLogMealStore()
   const { closeLogMealModal, addToast } = useUIStore()
   const createFoodEntry = useCreateFoodEntry()
 
-  if (!scannedProduct) return null
+  const serving = scannedProduct ? getOffServing(scannedProduct) : null
+  const [count, setCount] = useState(1) // serving count
+  const [grams, setGrams] = useState(serving?.amount ?? 100) // fallback amount
 
-  const per100 = offToIngredientDraft(scannedProduct)
-  const factor = scanGrams / 100
-  const nutrition = {
-    calories: (per100.calories ?? 0) * factor,
-    protein: (per100.protein ?? 0) * factor,
-    carbs: (per100.carbs ?? 0) * factor,
-    fat: (per100.fat ?? 0) * factor,
+  if (!scannedProduct || !serving) return null
+
+  const name = scannedProduct.product_name?.trim() || 'Scanned product'
+  const brand = scannedProduct.brands?.trim() || null
+  const mealLabel = MEAL_TYPES.find((m) => m.value === mealType)?.label ?? 'meal'
+  const useServing = serving.hasServing && serving.perServing
+
+  // Nutrition for the chosen amount.
+  const base: OffMacros = useServing ? serving.perServing! : serving.per100
+  const factor = useServing ? count : grams / 100
+  const nutrition: OffMacros = {
+    calories: base.calories * factor,
+    protein: base.protein * factor,
+    carbs: base.carbs * factor,
+    fat: base.fat * factor,
   }
-  const name = per100.name
-  const brand = per100.brand
-  const mealLabel = MEAL_TYPES.find((m) => m.value === mealType)?.label ?? 'Meal'
+
+  // What the amount reads as, mirroring the label.
+  const totalAmount = useServing && serving.amount ? serving.amount * count : grams
+  const amountText = serving.amount || !useServing ? `${fmt(totalAmount)} ${serving.unit}` : null
 
   const handleLog = async () => {
     try {
@@ -44,7 +57,7 @@ export function ScanConfirm() {
         entry: {
           recipe_id: null,
           meal_type: mealType,
-          servings: 1,
+          servings: useServing ? count : 1,
           calories: Math.round(nutrition.calories),
           protein: Math.round(nutrition.protein),
           carbs: Math.round(nutrition.carbs),
@@ -80,60 +93,77 @@ export function ScanConfirm() {
         </div>
       </div>
 
-      {/* Amount */}
+      {/* Amount — serving-based when the label provides one */}
       <div className="rounded-[22px] bg-gradient-to-br from-emerald/[0.09] to-emerald/[0.03] p-4 ring-1 ring-emerald/15">
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55">Amount</p>
+        <div className="mb-3 flex items-baseline justify-between">
+          <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">
+            {useServing ? 'Servings' : 'Amount'}
+          </p>
+          {useServing && serving.label && (
+            <p className="metric text-xs font-medium text-espresso/50">
+              1 serving = {serving.label}
+            </p>
+          )}
+        </div>
+
         <div className="flex items-center justify-center gap-5">
           <button
             type="button"
-            onClick={() => setScanGrams(scanGrams - 10)}
+            onClick={() =>
+              useServing ? setCount((c) => Math.max(0.5, +(c - 0.5).toFixed(1))) : setGrams((g) => Math.max(1, g - 10))
+            }
             className="pressable grid h-10 w-10 place-items-center rounded-2xl bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60 hover:ring-emerald/40"
           >
             <Minus className="h-4 w-4" />
           </button>
-          <div className="metric flex min-w-[6rem] items-baseline justify-center gap-1">
-            <span className="text-4xl font-bold text-espresso">{scanGrams}</span>
-            <span className="text-base font-medium text-espresso/50">g</span>
+          <div className="metric flex min-w-[6rem] flex-col items-center">
+            <span className="text-4xl font-bold leading-none text-espresso">
+              {useServing ? fmt(count) : grams}
+            </span>
+            <span className="mt-1 text-xs font-medium text-espresso/50">
+              {useServing ? (count === 1 ? 'serving' : 'servings') : serving.unit}
+              {amountText && useServing ? ` · ${amountText}` : ''}
+            </span>
           </div>
           <button
             type="button"
-            onClick={() => setScanGrams(scanGrams + 10)}
+            onClick={() =>
+              useServing ? setCount((c) => +(c + 0.5).toFixed(1)) : setGrams((g) => g + 10)
+            }
             className="pressable grid h-10 w-10 place-items-center rounded-2xl bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60 hover:ring-emerald/40"
           >
             <Plus className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-3 flex flex-wrap justify-center gap-2">
-          {QUICK_GRAMS.map((g) => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => setScanGrams(g)}
-              className={`pressable rounded-full px-3 py-1 text-xs font-semibold ring-1 transition-colors ${
-                scanGrams === g
-                  ? 'bg-emerald text-white ring-emerald'
-                  : 'bg-warm-white text-espresso/60 ring-latte/60 hover:ring-emerald/40'
-              }`}
-            >
-              {g}g
-            </button>
-          ))}
-        </div>
+
+        {useServing && (
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {SERVING_PRESETS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setCount(p)}
+                className={`pressable rounded-full px-3 py-1 text-xs font-semibold ring-1 transition-colors ${
+                  count === p
+                    ? 'bg-emerald text-white ring-emerald'
+                    : 'bg-warm-white text-espresso/60 ring-latte/60 hover:ring-emerald/40'
+                }`}
+              >
+                {fmt(p)}×
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Live nutrition */}
       <div className="grid grid-cols-4 gap-2.5">
         {NUTRIENT_TILES.map((t) => (
-          <div
-            key={t.key}
-            className={`rounded-[18px] bg-gradient-to-br p-3 text-center ring-1 ${t.tile}`}
-          >
+          <div key={t.key} className={`rounded-[18px] bg-gradient-to-br p-3 text-center ring-1 ${t.tile}`}>
             <span className="metric block text-xl font-bold text-espresso">
               {Math.round(nutrition[t.key])}
             </span>
-            <span className={`text-[10px] font-bold uppercase tracking-wide ${t.accent}`}>
-              {t.label}
-            </span>
+            <span className={`text-[10px] font-bold uppercase tracking-wide ${t.accent}`}>{t.label}</span>
           </div>
         ))}
       </div>

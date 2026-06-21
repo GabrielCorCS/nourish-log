@@ -5,13 +5,19 @@ import type { IngredientCategory, IngredientInsert } from '@/types/database'
 
 const SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl'
 const PRODUCT_URL = 'https://world.openfoodfacts.org/api/v2/product'
-const FIELDS = 'code,product_name,brands,image_small_url,nutriments,categories_tags'
+const FIELDS =
+  'code,product_name,brands,image_small_url,nutriments,categories_tags,serving_size,serving_quantity,serving_quantity_unit'
 
 export interface OffNutriments {
   'energy-kcal_100g'?: number
   proteins_100g?: number
   carbohydrates_100g?: number
   fat_100g?: number
+  // Per-serving values when the producer provides them.
+  'energy-kcal_serving'?: number
+  proteins_serving?: number
+  carbohydrates_serving?: number
+  fat_serving?: number
   [key: string]: number | undefined
 }
 
@@ -22,6 +28,10 @@ export interface OffProduct {
   image_small_url?: string
   nutriments?: OffNutriments
   categories_tags?: string[]
+  // Serving info straight off the label, e.g. "1 can (355 ml)".
+  serving_size?: string
+  serving_quantity?: number | string
+  serving_quantity_unit?: string
 }
 
 // A draft ingredient ready to be created in the household library.
@@ -134,6 +144,108 @@ export async function getProductByBarcode(
     return data.product
   } catch {
     return null
+  }
+}
+
+export interface OffMacros {
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
+}
+
+export interface OffServingInfo {
+  /** True when the product carries a real per-serving size off the label. */
+  hasServing: boolean
+  /** Human label as printed, e.g. "1 can (355 ml)" or "30 g". */
+  label: string | null
+  /** Numeric size of one serving (e.g. 355). */
+  amount: number | null
+  /** Unit the serving is measured in. */
+  unit: 'g' | 'ml'
+  /** Nutrition for ONE serving (null when unknown). */
+  perServing: OffMacros | null
+  /** Always-available per-100g/ml fallback. */
+  per100: OffMacros
+}
+
+// Pull a numeric amount + unit out of a free-text serving size, e.g.
+// "1 can (355 ml)" -> { amount: 355, unit: 'ml' }. Used when OFF lacks the
+// structured serving_quantity field (common for partially-filled records).
+function parseServingSize(s?: string): { amount: number | null; unit: 'g' | 'ml' | null } {
+  if (!s) return { amount: null, unit: null }
+  const m = s.toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*(ml|cl|fl\.?\s?oz|l|kg|g|oz)\b/)
+  if (!m) return { amount: null, unit: null }
+  const amt = parseFloat(m[1].replace(',', '.'))
+  if (!Number.isFinite(amt) || amt <= 0) return { amount: null, unit: null }
+  switch (m[2].replace(/[.\s]/g, '')) {
+    case 'ml': return { amount: amt, unit: 'ml' }
+    case 'cl': return { amount: amt * 10, unit: 'ml' }
+    case 'l': return { amount: amt * 1000, unit: 'ml' }
+    case 'floz': return { amount: Math.round(amt * 29.5735), unit: 'ml' }
+    case 'kg': return { amount: amt * 1000, unit: 'g' }
+    case 'oz': return { amount: Math.round(amt * 28.3495), unit: 'g' }
+    default: return { amount: amt, unit: 'g' }
+  }
+}
+
+/**
+ * Resolve how a scanned product should be logged. Prefers the label's serving
+ * ("1 can (355 ml)") over a bare 100 g so the app mirrors the nutrition panel.
+ */
+export function getOffServing(p: OffProduct): OffServingInfo {
+  const n = p.nutriments ?? {}
+  const per100: OffMacros = {
+    calories: num(n['energy-kcal_100g']),
+    protein: num(n.proteins_100g),
+    carbs: num(n.carbohydrates_100g),
+    fat: num(n.fat_100g),
+  }
+
+  // Numeric serving amount: structured field first, else parsed from the label.
+  const parsed = parseServingSize(p.serving_size)
+  const sqRaw = typeof p.serving_quantity === 'string' ? parseFloat(p.serving_quantity) : p.serving_quantity
+  const sqNum = typeof sqRaw === 'number' && Number.isFinite(sqRaw) && sqRaw > 0 ? sqRaw : null
+  const amount = sqNum ?? parsed.amount
+
+  // Unit: explicit field → parsed-from-label → 'g'.
+  const uField = (p.serving_quantity_unit || '').toLowerCase()
+  const unit: 'g' | 'ml' =
+    uField === 'ml' || uField === 'cl' || uField === 'l'
+      ? 'ml'
+      : uField === 'g' || uField === 'kg'
+        ? 'g'
+        : parsed.unit ?? 'g'
+
+  // Prefer explicit per-serving nutriments; else scale per-100 by the amount.
+  let perServing: OffMacros | null = null
+  if (num(n['energy-kcal_serving']) > 0) {
+    perServing = {
+      calories: num(n['energy-kcal_serving']),
+      protein: num(n.proteins_serving),
+      carbs: num(n.carbohydrates_serving),
+      fat: num(n.fat_serving),
+    }
+  } else if (amount) {
+    const f = amount / 100
+    perServing = {
+      calories: per100.calories * f,
+      protein: per100.protein * f,
+      carbs: per100.carbs * f,
+      fat: per100.fat * f,
+    }
+  }
+
+  const labelRaw = p.serving_size?.trim()
+  const label = labelRaw || (amount ? `${amount} ${unit}` : null)
+
+  return {
+    hasServing: !!perServing && !!label,
+    label,
+    amount,
+    unit,
+    perServing,
+    per100,
   }
 }
 

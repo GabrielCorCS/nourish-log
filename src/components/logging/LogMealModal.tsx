@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { ArrowLeft, Check, Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, Check } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   Button,
 } from '@/components/ui'
 import { LogHub } from './LogHub'
-import { BarcodeScanView } from './BarcodeScanView'
+import { BarcodeScanView, type ScanStatus } from './BarcodeScanView'
 import { ScanConfirm } from './ScanConfirm'
 import { RecipeSelector } from './RecipeSelector'
 import { IngredientSelector } from './IngredientSelector'
@@ -59,8 +59,16 @@ export function LogMealModal() {
     reset,
   } = useLogMealStore()
 
-  const [looking, setLooking] = useState(false)
+  const [scanStatus, setScanStatus] = useState<ScanStatus>('searching')
   const handlingRef = useRef(false)
+
+  // Reset the scanner whenever we (re)enter the scan step.
+  useEffect(() => {
+    if (step === 'scan') {
+      setScanStatus('searching')
+      handlingRef.current = false
+    }
+  }, [step])
 
   const handleClose = () => {
     closeLogMealModal()
@@ -70,20 +78,28 @@ export function LogMealModal() {
   const handleDetected = async (barcode: string) => {
     if (handlingRef.current) return
     handlingRef.current = true
-    setLooking(true)
+    setScanStatus('reading')
     try {
       const product = await getProductByBarcode(barcode)
       if (product) {
+        setScanStatus('found')
         setScannedProduct(product)
         setStep('scan-confirm')
       } else {
+        setScanStatus('error')
         addToast('No product found for that barcode', 'error')
+        window.setTimeout(() => {
+          setScanStatus('searching')
+          handlingRef.current = false
+        }, 1400)
       }
     } catch {
+      setScanStatus('error')
       addToast('Lookup failed — try again', 'error')
-    } finally {
-      setLooking(false)
-      handlingRef.current = false
+      window.setTimeout(() => {
+        setScanStatus('searching')
+        handlingRef.current = false
+      }, 1400)
     }
   }
 
@@ -201,15 +217,7 @@ export function LogMealModal() {
 
         <DialogBody>
           {step === 'hub' && <LogHub />}
-          {step === 'scan' &&
-            (looking ? (
-              <div className="flex flex-col items-center gap-3 py-12 text-espresso/60">
-                <Loader2 className="h-7 w-7 animate-spin text-emerald" />
-                <p className="text-sm font-medium">Looking up product…</p>
-              </div>
-            ) : (
-              <BarcodeScanView onDetected={handleDetected} />
-            ))}
+          {step === 'scan' && <BarcodeScanView status={scanStatus} onDetected={handleDetected} />}
           {step === 'scan-confirm' && <ScanConfirm />}
           {step === 'recipe' && <RecipeSelector />}
           {step === 'ingredients' && <IngredientSelector />}

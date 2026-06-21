@@ -4,6 +4,7 @@ import { PageContainer } from '@/components/layout'
 import { Button } from '@/components/ui'
 import { CalendarStrip, DayView } from '@/components/journal'
 import { LogMealModal } from '@/components/logging'
+import { PersonToggle } from '@/components/shared'
 import { useUIStore } from '@/stores'
 import { formatDate } from '@/lib/dates'
 
@@ -13,6 +14,8 @@ export function Journal() {
 
   return (
     <PageContainer>
+      <PersonToggle className="mb-4" />
+
       {/* Page header — mirrors Dashboard greeting layout */}
       <div className="mb-6 flex items-end justify-between gap-4">
         <div className="min-w-0">
