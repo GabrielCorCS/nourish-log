@@ -101,21 +101,27 @@ export function DialogContent({ children, className, size = 'md' }: DialogConten
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-espresso/40 animate-fade-in"
+        className="fixed inset-0 bg-forest/40 backdrop-blur-sm animate-fade-in"
         onClick={() => onOpenChange(false)}
       />
 
-      {/* Content */}
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      {/* Content — bottom sheet on mobile, centered modal on desktop */}
+      <div className="fixed inset-0 flex items-end justify-center p-0 sm:items-center sm:p-4">
         <div
           className={cn(
-            'relative w-full bg-warm-white rounded-card shadow-soft-lg',
-            'animate-scale-in overflow-hidden',
+            'relative w-full bg-warm-white shadow-soft-lg overflow-hidden',
+            'rounded-t-[24px] sm:rounded-card',
+            'animate-sheet-up sm:animate-scale-in',
+            'pb-[max(env(safe-area-inset-bottom),0px)] sm:pb-0',
             sizes[size],
             className
           )}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Grab handle (mobile only) */}
+          <div className="flex justify-center pt-3 pb-1 sm:hidden">
+            <span className="h-1.5 w-10 rounded-full bg-latte" />
+          </div>
           {children}
         </div>
       </div>

@@ -11,13 +11,18 @@ export function Header({ title }: HeaderProps) {
   const { profile, isAdmin, signOut } = useAuth()
 
   return (
-    <header className="lg:hidden sticky top-0 z-30 bg-cream/95 backdrop-blur-sm border-b border-latte">
+    <header className="lg:hidden sticky top-0 z-30 bg-cream/80 backdrop-blur-lg border-b border-latte/70 pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between h-14 px-4">
-        <h1 className="font-heading text-xl font-bold text-espresso">
-          {title || 'NourishLog'}
-        </h1>
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-latte flex items-center justify-center text-lg">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-b from-emerald to-emerald-dark text-base shadow-soft">
+            🥗
+          </span>
+          <h1 className="font-heading text-xl font-extrabold tracking-tight text-espresso">
+            {title || 'NourishLog'}
+          </h1>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="h-8 w-8 rounded-full bg-sage/20 ring-1 ring-latte flex items-center justify-center text-lg">
             {profile?.avatar_emoji || '👤'}
           </div>
           {isAdmin && (

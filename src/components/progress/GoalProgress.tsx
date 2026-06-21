@@ -1,8 +1,16 @@
 import { Target } from 'lucide-react'
-import { Card, Progress } from '@/components/ui'
 import { useWeeklyEntries, useGoals, calculateDailyTotals } from '@/hooks'
 import { getPastDays, toISODateString } from '@/lib/dates'
 import type { FoodEntry } from '@/types/database'
+
+type GoalStat = {
+  label: string
+  met: number
+  total: number
+  barGradient: string
+  tileClass: string
+  accentClass: string
+}
 
 export function GoalProgress() {
   const days = getPastDays(7)
@@ -47,60 +55,95 @@ export function GoalProgress() {
     }
   })
 
-  const stats = [
+  const stats: GoalStat[] = [
     {
-      label: 'Calorie Goal',
+      label: 'Calories',
       met: daysMetCalories,
       total: 7,
-      color: 'calories' as const,
+      barGradient: 'bg-gradient-to-r from-citrus to-terracotta',
+      tileClass: 'bg-gradient-to-br from-citrus/[0.09] to-citrus/[0.03] ring-citrus/15',
+      accentClass: 'text-citrus',
     },
     {
-      label: 'Protein Goal',
+      label: 'Protein',
       met: daysMetProtein,
       total: 7,
-      color: 'protein' as const,
+      barGradient: 'bg-gradient-to-r from-[#34D27B] to-emerald',
+      tileClass: 'bg-gradient-to-br from-emerald/[0.12] to-emerald/[0.04] ring-emerald/20',
+      accentClass: 'text-emerald-dark',
     },
     {
-      label: 'Carbs Goal',
+      label: 'Carbs',
       met: daysMetCarbs,
       total: 7,
-      color: 'carbs' as const,
+      barGradient: 'bg-gradient-to-r from-[#F8CE5B] to-honey',
+      tileClass: 'bg-gradient-to-br from-honey/[0.18] to-honey/[0.06] ring-honey/30',
+      accentClass: 'text-[#A9791B]',
     },
     {
-      label: 'Fat Goal',
+      label: 'Fat',
       met: daysMetFat,
       total: 7,
-      color: 'fat' as const,
+      barGradient: 'bg-gradient-to-r from-[#F9A8D4] to-blush',
+      tileClass: 'bg-gradient-to-br from-blush/[0.16] to-blush/[0.05] ring-blush/25',
+      accentClass: 'text-[#C13C7E]',
     },
   ]
 
   return (
-    <Card variant="elevated" padding="lg">
-      <div className="flex items-center gap-2 mb-6">
-        <Target className="h-5 w-5 text-caramel" />
-        <h3 className="font-heading text-lg font-semibold text-espresso">
-          Weekly Goal Progress
-        </h3>
+    <div className="rounded-[28px] bg-warm-white ring-1 ring-latte/60 p-5">
+      {/* Header */}
+      <div className="mb-5 flex items-center gap-2.5">
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald/12 text-emerald-dark">
+          <Target className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">Weekly</p>
+          <h2 className="font-display text-title font-semibold leading-none text-espresso">Goals hit</h2>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {stats.map((stat) => (
-          <div key={stat.label}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-espresso">{stat.label}</span>
-              <span className="text-sm font-medium text-espresso">
-                {stat.met}/{stat.total} days
-              </span>
+      <div className="space-y-3">
+        {stats.map((stat) => {
+          const pct = (stat.met / stat.total) * 100
+          return (
+            <div
+              key={stat.label}
+              className={`rounded-[22px] p-4 ring-1 ${stat.tileClass}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wide text-espresso/55">
+                  {stat.label}
+                </span>
+                <span className={`metric text-sm font-bold ${stat.accentClass}`}>
+                  {stat.met}/{stat.total}
+                  <span className="text-xs font-normal text-espresso/40 ml-1">days</span>
+                </span>
+              </div>
+
+              {/* Progress rail */}
+              <div className="h-2 w-full overflow-hidden rounded-full bg-white/60">
+                <div
+                  className={`h-full rounded-full transition-[width] duration-700 ease-spring ${stat.barGradient}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+
+              {/* Day dots */}
+              <div className="mt-2 flex gap-1">
+                {Array.from({ length: stat.total }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
+                      i < stat.met ? stat.barGradient : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-            <Progress
-              value={stat.met}
-              max={stat.total}
-              color={stat.color}
-              size="md"
-            />
-          </div>
-        ))}
+          )
+        })}
       </div>
-    </Card>
+    </div>
   )
 }

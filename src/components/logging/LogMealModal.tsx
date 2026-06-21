@@ -1,4 +1,5 @@
-import { ArrowLeft, Check } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ArrowLeft, Check, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -8,24 +9,36 @@ import {
   DialogFooter,
   Button,
 } from '@/components/ui'
-import { MealTypeSelector } from './MealTypeSelector'
-import { SourceSelector } from './SourceSelector'
+import { LogHub } from './LogHub'
+import { BarcodeScanView } from './BarcodeScanView'
+import { ScanConfirm } from './ScanConfirm'
 import { RecipeSelector } from './RecipeSelector'
 import { IngredientSelector } from './IngredientSelector'
 import { ServingSizeInput } from './ServingSizeInput'
 import { NutritionPreview } from './NutritionPreview'
-import { useLogMealStore, useUIStore } from '@/stores'
+import { useLogMealStore, useUIStore, type LogStep } from '@/stores'
 import { useCreateFoodEntry } from '@/hooks'
 import { useHousehold } from '@/hooks/useHousehold'
 import { servingsEquivalent } from '@/lib/nutrition'
+import { getProductByBarcode } from '@/lib/openfoodfacts'
 import { cn } from '@/lib/utils'
 
+const TITLES: Record<LogStep, string> = {
+  'hub': 'Log food',
+  'scan': 'Scan barcode',
+  'scan-confirm': 'Confirm food',
+  'recipe': 'Choose a recipe',
+  'ingredients': 'Build your food',
+  'servings': 'How much?',
+  'preview': 'Review & log',
+}
+
 export function LogMealModal() {
-  const { isLogMealModalOpen, closeLogMealModal } = useUIStore()
-  const addToast = useUIStore((state) => state.addToast)
+  const { isLogMealModalOpen, closeLogMealModal, addToast } = useUIStore()
   const createFoodEntry = useCreateFoodEntry()
   const { data: household } = useHousehold()
-  const partner = household?.partner ?? null
+  const members = household?.members ?? []
+  const meId = household?.me?.id ?? null
 
   const {
     step,
@@ -38,6 +51,7 @@ export function LogMealModal() {
     notes,
     subjectUserId,
     setSubject,
+    setScannedProduct,
     totalCalories,
     totalProtein,
     totalCarbs,
@@ -45,19 +59,43 @@ export function LogMealModal() {
     reset,
   } = useLogMealStore()
 
+  const [looking, setLooking] = useState(false)
+  const handlingRef = useRef(false)
+
   const handleClose = () => {
     closeLogMealModal()
     reset()
   }
 
+  const handleDetected = async (barcode: string) => {
+    if (handlingRef.current) return
+    handlingRef.current = true
+    setLooking(true)
+    try {
+      const product = await getProductByBarcode(barcode)
+      if (product) {
+        setScannedProduct(product)
+        setStep('scan-confirm')
+      } else {
+        addToast('No product found for that barcode', 'error')
+      }
+    } catch {
+      addToast('Lookup failed — try again', 'error')
+    } finally {
+      setLooking(false)
+      handlingRef.current = false
+    }
+  }
+
   const handleBack = () => {
     switch (step) {
-      case 'source':
-        setStep('meal-type')
-        break
+      case 'scan':
       case 'recipe':
       case 'ingredients':
-        setStep('source')
+        setStep('hub')
+        break
+      case 'scan-confirm':
+        setStep('scan')
         break
       case 'servings':
         setStep(source === 'recipe' ? 'recipe' : 'ingredients')
@@ -69,16 +107,11 @@ export function LogMealModal() {
   }
 
   const handleNext = () => {
-    if (step === 'ingredients') {
-      setStep('servings')
-    } else if (step === 'servings') {
-      setStep('preview')
-    }
+    if (step === 'ingredients') setStep('servings')
+    else if (step === 'servings') setStep('preview')
   }
 
   const handleSubmit = async () => {
-    if (!mealType) return
-
     try {
       await createFoodEntry.mutateAsync({
         entry: {
@@ -102,7 +135,6 @@ export function LogMealModal() {
             : undefined,
         subjectUserId: subjectUserId ?? undefined,
       })
-
       addToast('Meal logged successfully!', 'success')
       handleClose()
     } catch {
@@ -111,105 +143,93 @@ export function LogMealModal() {
   }
 
   const canProceed = () => {
-    switch (step) {
-      case 'ingredients':
-        return selectedIngredients.length > 0
-      case 'servings':
-        return servings > 0
-      default:
-        return true
-    }
+    if (step === 'ingredients') return selectedIngredients.length > 0
+    if (step === 'servings') return servings > 0
+    return true
   }
 
-  const getStepTitle = () => {
-    switch (step) {
-      case 'meal-type':
-        return 'What meal is this?'
-      case 'source':
-        return 'How would you like to log?'
-      case 'recipe':
-        return 'Select a recipe'
-      case 'ingredients':
-        return 'Add ingredients'
-      case 'servings':
-        return 'How many servings?'
-      case 'preview':
-        return 'Review & Log'
-    }
-  }
+  const showFooter = step === 'ingredients' || step === 'servings' || step === 'preview'
 
   return (
     <Dialog open={isLogMealModalOpen} onOpenChange={handleClose}>
       <DialogContent size="lg">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            {step !== 'meal-type' && (
+            {step !== 'hub' && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 -ml-2"
+                className="-ml-2 h-8 w-8"
                 onClick={handleBack}
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <DialogTitle>{getStepTitle()}</DialogTitle>
+            <DialogTitle className="font-display">{TITLES[step]}</DialogTitle>
           </div>
         </DialogHeader>
 
-        {partner && (
-          <div className="flex items-center gap-2 px-1 pt-1 pb-2 text-sm">
-            <span className="text-espresso/50">Logging for</span>
-            <div className="flex rounded-input border border-latte overflow-hidden">
-              <button
-                type="button"
-                className={cn(
-                  'px-3 py-1 transition-colors',
-                  !subjectUserId
-                    ? 'bg-caramel/15 text-caramel font-medium'
-                    : 'text-espresso/60'
-                )}
-                onClick={() => setSubject(null)}
-              >
-                You
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  'px-3 py-1 transition-colors',
-                  subjectUserId === partner.id
-                    ? 'bg-caramel/15 text-caramel font-medium'
-                    : 'text-espresso/60'
-                )}
-                onClick={() => setSubject(partner.id)}
-              >
-                {partner.avatar_emoji || '👤'} {partner.name}
-              </button>
+        {/* Who is this log for? Always shows the household by name (required). */}
+        {members.length > 1 && (
+          <div className="px-1 pb-1 pt-0.5">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-espresso/45">
+              Who is this for?
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {members.map((m) => {
+                const selected = (subjectUserId ?? meId) === m.id
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSubject(m.id)}
+                    className={cn(
+                      'pressable flex items-center justify-center gap-2 rounded-[14px] py-2.5 text-sm font-semibold ring-1 transition-colors',
+                      selected
+                        ? 'bg-emerald/12 text-emerald-dark ring-emerald/30'
+                        : 'bg-warm-white text-espresso/55 ring-latte/60 hover:ring-emerald/30'
+                    )}
+                  >
+                    <span className="text-base">{m.avatar_emoji || '👤'}</span>
+                    {m.name}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
 
         <DialogBody>
-          {step === 'meal-type' && <MealTypeSelector />}
-          {step === 'source' && <SourceSelector />}
+          {step === 'hub' && <LogHub />}
+          {step === 'scan' &&
+            (looking ? (
+              <div className="flex flex-col items-center gap-3 py-12 text-espresso/60">
+                <Loader2 className="h-7 w-7 animate-spin text-emerald" />
+                <p className="text-sm font-medium">Looking up product…</p>
+              </div>
+            ) : (
+              <BarcodeScanView onDetected={handleDetected} />
+            ))}
+          {step === 'scan-confirm' && <ScanConfirm />}
           {step === 'recipe' && <RecipeSelector />}
           {step === 'ingredients' && <IngredientSelector />}
           {step === 'servings' && <ServingSizeInput />}
           {step === 'preview' && <NutritionPreview />}
         </DialogBody>
 
-        {(step === 'ingredients' || step === 'servings' || step === 'preview') && (
+        {showFooter && (
           <DialogFooter>
             {step === 'preview' ? (
               <Button
                 onClick={handleSubmit}
                 isLoading={createFoodEntry.isPending}
                 leftIcon={<Check className="h-4 w-4" />}
+                className="w-full sm:w-auto"
               >
-                Log Meal
+                Log meal
               </Button>
             ) : (
-              <Button onClick={handleNext} disabled={!canProceed()}>
+              <Button onClick={handleNext} disabled={!canProceed()} className="w-full sm:w-auto">
                 Continue
               </Button>
             )}

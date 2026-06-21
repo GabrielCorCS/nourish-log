@@ -1,4 +1,7 @@
 export { LogMealModal } from './LogMealModal'
+export { LogHub } from './LogHub'
+export { BarcodeScanView } from './BarcodeScanView'
+export { ScanConfirm } from './ScanConfirm'
 export { MealTypeSelector } from './MealTypeSelector'
 export { SourceSelector } from './SourceSelector'
 export { RecipeSelector } from './RecipeSelector'

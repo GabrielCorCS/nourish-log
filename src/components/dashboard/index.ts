@@ -1,6 +1,6 @@
 export { NutritionRing, NutritionRings } from './NutritionRing'
 export { TodaySummary } from './TodaySummary'
-export { QuickActions } from './QuickActions'
+export { MacroTiles } from './MacroTiles'
 export { MealTimeline } from './MealTimeline'
 export { StreakCard } from './StreakCard'
 export { PartnerSummary } from './PartnerSummary'

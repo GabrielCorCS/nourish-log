@@ -27,7 +27,7 @@ export function LoadingSkeleton({ className }: LoadingSkeletonProps) {
   return (
     <div
       className={cn(
-        'animate-pulse bg-latte/30 rounded-input',
+        'skeleton rounded-input',
         className
       )}
     />
@@ -36,7 +36,7 @@ export function LoadingSkeleton({ className }: LoadingSkeletonProps) {
 
 export function CardSkeleton() {
   return (
-    <div className="bg-warm-white rounded-card p-4 space-y-3">
+    <div className="bg-warm-white ring-1 ring-latte/50 rounded-card p-4 space-y-3">
       <LoadingSkeleton className="h-4 w-2/3" />
       <LoadingSkeleton className="h-4 w-1/2" />
       <div className="flex gap-2">

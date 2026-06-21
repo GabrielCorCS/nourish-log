@@ -3,7 +3,7 @@ import { PageContainer } from '@/components/layout'
 import { Button } from '@/components/ui'
 import {
   TodaySummary,
-  QuickActions,
+  MacroTiles,
   MealTimeline,
   StreakCard,
   PartnerSummary,
@@ -11,33 +11,61 @@ import {
 } from '@/components/dashboard'
 import { LogMealModal } from '@/components/logging'
 import { useUIStore } from '@/stores'
+import { useAuth } from '@/contexts/AuthContext'
+import { formatDate } from '@/lib/dates'
+
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 18) return 'Good afternoon'
+  return 'Good evening'
+}
 
 export function Dashboard() {
   const openLogMealModal = useUIStore((state) => state.openLogMealModal)
+  const { profile } = useAuth()
+  const firstName = profile?.name?.trim().split(/\s+/)[0] || 'there'
 
   return (
-    <PageContainer
-      title="Dashboard"
-      description="Track your daily nutrition"
-      action={
+    <PageContainer>
+      {/* Greeting */}
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-espresso/55">
+            {formatDate(new Date(), 'EEEE, MMMM d')}
+          </p>
+          <h1 className="font-display text-display font-semibold text-espresso">
+            {getGreeting()}, {firstName}
+          </h1>
+        </div>
         <Button
           onClick={openLogMealModal}
           leftIcon={<Plus className="h-4 w-4" />}
+          className="hidden shrink-0 sm:inline-flex"
         >
-          Log Meal
+          Log meal
         </Button>
-      }
-    >
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+      </div>
+
+      {/* Bento grid — asymmetric tiles, calorie hero leads */}
+      <div className="stagger grid auto-rows-auto grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* Hero: big block, left two columns over two rows on desktop */}
+        <div className="col-span-2 lg:col-span-2 lg:row-span-2">
           <TodaySummary />
-          <QuickAdd />
-          <MealTimeline />
         </div>
-        <div className="space-y-6">
-          <PartnerSummary />
-          <QuickActions />
-          <StreakCard />
+
+        {/* Three macro tiles + streak fill the 2×2 to the hero's right */}
+        <MacroTiles />
+        <StreakCard />
+
+        {/* Secondary row — these self-place and return null when empty,
+            so they carry their own col-span (no empty wrapper cells) */}
+        <PartnerSummary />
+        <QuickAdd />
+
+        {/* Full-width meal timeline */}
+        <div className="col-span-2 lg:col-span-4">
+          <MealTimeline />
         </div>
       </div>
 

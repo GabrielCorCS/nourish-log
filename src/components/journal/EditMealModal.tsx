@@ -39,7 +39,7 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
 
   if (!entry) return null
 
-  // Macros per single serving, to rescale from when servings change.
+  // Macros per single serving, to rescale when servings change.
   const baseServings = entry.servings || 1
   const base = entry.recipe
     ? {
@@ -85,12 +85,29 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
     <Dialog open={!!entry} onOpenChange={(open) => !open && onClose()}>
       <DialogContent size="md">
         <DialogHeader>
-          <DialogTitle>Edit meal</DialogTitle>
+          {/* Item preview */}
+          <div className="mb-3 flex items-center gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-gradient-to-br from-emerald/[0.12] to-emerald/[0.04] text-2xl ring-1 ring-emerald/15">
+              {entry.recipe?.emoji || '🍽️'}
+            </span>
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="truncate">
+                {entry.recipe?.name || 'Quick add'}
+              </DialogTitle>
+              <p className="metric mt-0.5 text-xs text-espresso/45">
+                {Math.round(scaled.calories)} kcal · {servings} {servings === 1 ? 'serving' : 'servings'}
+              </p>
+            </div>
+          </div>
         </DialogHeader>
+
         <DialogBody>
-          <div className="space-y-4">
+          <div className="space-y-5">
+            {/* Meal type selector */}
             <div>
-              <p className="text-sm font-medium text-espresso/70 mb-2">Meal</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-espresso/55">
+                Meal type
+              </p>
               <div className="grid grid-cols-4 gap-2">
                 {MEAL_TYPES.map((mt) => (
                   <button
@@ -98,42 +115,48 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
                     type="button"
                     onClick={() => setMealType(mt.value)}
                     className={cn(
-                      'flex flex-col items-center gap-1 rounded-input border py-2 text-xs transition-colors',
+                      'pressable flex flex-col items-center gap-1 rounded-[14px] border py-2.5 text-xs font-semibold transition-colors',
                       mealType === mt.value
-                        ? 'border-caramel bg-caramel/10 text-caramel'
-                        : 'border-latte text-espresso/60 hover:bg-latte/30'
+                        ? 'border-emerald/30 bg-gradient-to-br from-emerald/[0.12] to-emerald/[0.04] text-emerald-dark ring-1 ring-emerald/20'
+                        : 'border-latte text-espresso/55 hover:border-emerald/20 hover:bg-latte/30'
                     )}
                   >
-                    <span className="text-lg">{mt.emoji}</span>
+                    <span className="text-xl">{mt.emoji}</span>
                     {mt.label}
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Servings stepper */}
             <div>
-              <p className="text-sm font-medium text-espresso/70 mb-2">Servings</p>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-espresso/55">
+                Servings
+              </p>
+              <div className="flex items-center gap-3 rounded-[14px] bg-cream p-3 ring-1 ring-latte/60">
+                <button
+                  type="button"
                   onClick={() =>
                     setServings((s) => Math.max(0.5, Math.round((s - 0.5) * 100) / 100))
                   }
+                  className="pressable flex h-9 w-9 items-center justify-center rounded-full bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60 hover:bg-latte/30"
                 >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-12 text-center font-medium">{servings}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="metric flex-1 text-center text-xl font-bold text-espresso">
+                  {servings}
+                </span>
+                <button
+                  type="button"
                   onClick={() => setServings((s) => Math.round((s + 0.5) * 100) / 100)}
+                  className="pressable flex h-9 w-9 items-center justify-center rounded-full bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60 hover:bg-latte/30"
                 >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
+            {/* Notes */}
             <Input
               label="Notes"
               value={notes}
@@ -141,19 +164,37 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
               placeholder="Optional"
             />
 
-            <div className="rounded-input bg-cream p-3 text-sm text-espresso/70">
-              {Math.round(scaled.calories)} cal · {Math.round(scaled.protein)}p ·{' '}
-              {Math.round(scaled.carbs)}c · {Math.round(scaled.fat)}f
+            {/* Live macro preview */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { label: 'Cal', value: Math.round(scaled.calories), color: 'text-terracotta', bg: 'from-terracotta/[0.10] to-terracotta/[0.04] ring-terracotta/15' },
+                { label: 'Protein', value: `${Math.round(scaled.protein)}g`, color: 'text-emerald-dark', bg: 'from-emerald/[0.12] to-emerald/[0.04] ring-emerald/20' },
+                { label: 'Carbs', value: `${Math.round(scaled.carbs)}g`, color: 'text-[#A9791B]', bg: 'from-honey/[0.18] to-honey/[0.06] ring-honey/30' },
+                { label: 'Fat', value: `${Math.round(scaled.fat)}g`, color: 'text-[#C13C7E]', bg: 'from-blush/[0.16] to-blush/[0.05] ring-blush/25' },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`flex flex-col items-center gap-0.5 rounded-[14px] bg-gradient-to-br p-3 ring-1 ${item.bg}`}
+                >
+                  <span className={`metric text-lg font-bold leading-none ${item.color}`}>
+                    {item.value}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-espresso/40">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </DialogBody>
+
         <DialogFooter>
           <Button
             onClick={handleSave}
             isLoading={updateEntry.isPending}
             leftIcon={<Check className="h-4 w-4" />}
           >
-            Save
+            Save changes
           </Button>
         </DialogFooter>
       </DialogContent>

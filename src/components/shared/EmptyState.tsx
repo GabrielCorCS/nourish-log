@@ -23,16 +23,16 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-12 px-4 text-center',
+        'animate-enter flex flex-col items-center justify-center py-12 px-4 text-center',
         className
       )}
     >
       {icon && (
-        <div className="w-16 h-16 mb-4 flex items-center justify-center bg-latte/20 rounded-full text-espresso/40">
+        <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gradient-to-b from-sage/25 to-emerald/10 text-emerald-dark ring-1 ring-emerald/15">
           {icon}
         </div>
       )}
-      <h3 className="font-heading text-lg font-semibold text-espresso mb-1">
+      <h3 className="font-heading text-lg font-bold text-espresso mb-1">
         {title}
       </h3>
       {description && (

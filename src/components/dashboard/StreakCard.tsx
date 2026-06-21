@@ -1,5 +1,4 @@
-import { Flame, Trophy } from 'lucide-react'
-import { Card } from '@/components/ui'
+import { Flame } from 'lucide-react'
 import { useUserStreak } from '@/hooks'
 import { pluralize } from '@/lib/utils'
 
@@ -10,29 +9,22 @@ export function StreakCard() {
   const longestStreak = streak?.longest_streak || 0
 
   return (
-    <Card variant="elevated" padding="md">
-      <h3 className="font-heading text-lg font-semibold text-espresso mb-4">
-        Your Streak
-      </h3>
-      <div className="flex items-center justify-around">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 flex items-center justify-center bg-terracotta/10 rounded-full mb-2">
-            <Flame className="h-6 w-6 text-terracotta" />
-          </div>
-          <span className="text-2xl font-bold text-espresso">{currentStreak}</span>
-          <span className="text-xs text-espresso/50">
-            {pluralize(currentStreak, 'day')} streak
-          </span>
-        </div>
-        <div className="w-px h-16 bg-latte" />
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 flex items-center justify-center bg-caramel/10 rounded-full mb-2">
-            <Trophy className="h-6 w-6 text-caramel" />
-          </div>
-          <span className="text-2xl font-bold text-espresso">{longestStreak}</span>
-          <span className="text-xs text-espresso/50">longest streak</span>
-        </div>
+    <div className="relative col-span-1 flex h-full min-h-[120px] flex-col justify-between overflow-hidden rounded-[22px] bg-gradient-to-br from-citrus to-terracotta p-4 text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-white/20 blur-2xl"
+      />
+      <div className="relative flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wide text-white/85">Streak</span>
+        <Flame className="h-4 w-4 text-white/90" />
       </div>
-    </Card>
+      <div className="metric relative mt-2 flex items-baseline gap-1.5">
+        <span className="text-3xl font-bold leading-none">{currentStreak}</span>
+        <span className="text-sm font-medium text-white/80">{pluralize(currentStreak, 'day')}</span>
+      </div>
+      <p className="metric relative mt-2 text-xs font-medium text-white/75">
+        Best: {longestStreak} {pluralize(longestStreak, 'day')}
+      </p>
+    </div>
   )
 }

@@ -38,18 +38,21 @@ export function Sidebar() {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'flex items-center gap-3 px-4 py-3 rounded-button',
-      'text-sm font-medium transition-all duration-200',
+      'pressable group flex items-center gap-3 px-4 py-3 rounded-button',
+      'text-sm font-medium transition-all duration-200 ease-spring',
       isActive
-        ? 'bg-caramel/10 text-caramel'
-        : 'text-espresso/70 hover:bg-latte/30 hover:text-espresso'
+        ? 'bg-gradient-to-r from-emerald/15 to-emerald/5 text-emerald-dark font-semibold ring-1 ring-emerald/15 shadow-soft'
+        : 'text-espresso/70 hover:bg-sage/10 hover:text-espresso'
     )
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-warm-white border-r border-latte fixed left-0 top-0">
       {/* Logo */}
-      <div className="p-6 border-b border-latte">
-        <h1 className="font-heading text-2xl font-bold text-espresso">
+      <div className="flex items-center gap-3 p-6 border-b border-latte">
+        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-b from-emerald to-emerald-dark text-xl shadow-soft">
+          🥗
+        </span>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight text-espresso">
           NourishLog
         </h1>
       </div>
@@ -107,41 +110,19 @@ export function Sidebar() {
       {/* Bottom section */}
       <div className="p-4 border-t border-latte space-y-1">
         {isAdmin && (
-          <NavLink
-            to="/invitations"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-4 py-3 rounded-button',
-                'text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-caramel/10 text-caramel'
-                  : 'text-espresso/70 hover:bg-latte/30 hover:text-espresso'
-              )
-            }
-          >
+          <NavLink to="/invitations" className={linkClass}>
             <UserPlus className="h-5 w-5" />
             Invitations
           </NavLink>
         )}
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3 px-4 py-3 rounded-button',
-              'text-sm font-medium transition-all duration-200',
-              isActive
-                ? 'bg-caramel/10 text-caramel'
-                : 'text-espresso/70 hover:bg-latte/30 hover:text-espresso'
-            )
-          }
-        >
+        <NavLink to="/settings" className={linkClass}>
           <Settings className="h-5 w-5" />
           Settings
         </NavLink>
         <Button
           variant="ghost"
           onClick={signOut}
-          className="w-full justify-start gap-3 px-4 py-3 text-espresso/70 hover:bg-latte/30 hover:text-espresso"
+          className="w-full justify-start gap-3 px-4 py-3 text-espresso/70 hover:bg-sage/10 hover:text-espresso"
         >
           <LogOut className="h-5 w-5" />
           Sign Out

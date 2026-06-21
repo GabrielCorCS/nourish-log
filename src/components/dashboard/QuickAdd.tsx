@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Zap, RotateCcw, Star } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Card } from '@/components/ui'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRecipes, useCreateFoodEntry } from '@/hooks'
@@ -112,15 +111,20 @@ export function QuickAdd() {
   if (!hasFavorites && !hasRecent) return null
 
   return (
-    <Card variant="elevated" padding="lg">
-      <div className="flex items-center gap-2 mb-4">
-        <Zap className="h-4 w-4 text-caramel" />
-        <h2 className="font-heading text-lg font-bold text-espresso">Quick add</h2>
+    <div className="col-span-2 h-full rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+      <div className="mb-4 flex items-center gap-2.5">
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald/12 text-emerald-dark">
+          <Zap className="h-4 w-4" />
+        </span>
+        <div>
+          <h2 className="font-display text-lg font-semibold leading-none text-espresso">Quick add</h2>
+          <p className="mt-1 text-xs text-espresso/45">One tap to log</p>
+        </div>
       </div>
 
       {hasRecent && (
         <div className="mb-4">
-          <p className="text-xs font-medium text-espresso/50 mb-2 flex items-center gap-1">
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-espresso/40">
             <RotateCcw className="h-3 w-3" /> Recent
           </p>
           <div className="flex flex-wrap gap-2">
@@ -130,10 +134,13 @@ export function QuickAdd() {
                 type="button"
                 onClick={() => relog(e)}
                 disabled={createFoodEntry.isPending}
-                className="rounded-button border border-latte bg-warm-white px-3 py-1.5 text-sm text-espresso hover:bg-latte/30 transition-colors disabled:opacity-50"
+                className="pressable group flex items-center gap-2 rounded-full border border-latte bg-warm-white py-1.5 pl-1.5 pr-3.5 text-sm text-espresso hover:border-emerald/40 hover:bg-emerald/[0.04] disabled:opacity-50"
               >
-                {e.recipe?.emoji || '🍽️'} {e.recipe?.name || 'Quick add'} ·{' '}
-                {Math.round(e.calories)} cal
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-cream text-base">
+                  {e.recipe?.emoji || '🍽️'}
+                </span>
+                <span className="font-medium">{e.recipe?.name || 'Quick add'}</span>
+                <span className="metric text-xs text-espresso/45">{Math.round(e.calories)} cal</span>
               </button>
             ))}
           </div>
@@ -142,7 +149,7 @@ export function QuickAdd() {
 
       {hasFavorites && (
         <div>
-          <p className="text-xs font-medium text-espresso/50 mb-2 flex items-center gap-1">
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-espresso/40">
             <Star className="h-3 w-3" /> Favorites
           </p>
           <div className="flex flex-wrap gap-2">
@@ -152,14 +159,17 @@ export function QuickAdd() {
                 type="button"
                 onClick={() => logRecipe(r)}
                 disabled={createFoodEntry.isPending}
-                className="rounded-button border border-latte bg-warm-white px-3 py-1.5 text-sm text-espresso hover:bg-latte/30 transition-colors disabled:opacity-50"
+                className="pressable flex items-center gap-2 rounded-full border border-latte bg-warm-white py-1.5 pl-1.5 pr-3.5 text-sm text-espresso hover:border-emerald/40 hover:bg-emerald/[0.04] disabled:opacity-50"
               >
-                {r.emoji || '🍽️'} {r.name}
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-cream text-base">
+                  {r.emoji || '🍽️'}
+                </span>
+                <span className="font-medium">{r.name}</span>
               </button>
             ))}
           </div>
         </div>
       )}
-    </Card>
+    </div>
   )
 }

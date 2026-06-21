@@ -51,7 +51,7 @@ export function TabsList({ children, className }: TabsListProps) {
   return (
     <div
       className={cn(
-        'flex gap-1 p-1 bg-latte/20 rounded-button overflow-x-auto no-scrollbar',
+        'flex gap-1 p-1 bg-sage/10 ring-1 ring-latte/50 rounded-button overflow-x-auto no-scrollbar',
         className
       )}
       role="tablist"
@@ -84,12 +84,12 @@ export function TabsTrigger({
       disabled={disabled}
       onClick={() => onValueChange(value)}
       className={cn(
-        'flex-shrink-0 px-3 py-1.5 text-sm font-medium rounded-input',
-        'transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel',
+        'flex-shrink-0 px-3.5 py-1.5 text-sm font-semibold rounded-input',
+        'transition-all duration-200 ease-spring',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald',
         isSelected
-          ? 'bg-warm-white text-espresso shadow-sm'
-          : 'text-espresso/60 hover:text-espresso hover:bg-warm-white/50',
+          ? 'bg-warm-white text-emerald-dark shadow-soft scale-[1.02]'
+          : 'text-espresso/55 hover:text-espresso hover:bg-warm-white/60',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}

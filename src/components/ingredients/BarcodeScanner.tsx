@@ -30,8 +30,6 @@ export function BarcodeScanner({
     setError(null)
     const reader = new BrowserMultiFormatReader()
 
-    // Passing undefined for deviceId lets the reader prefer the rear
-    // (environment-facing) camera when available — ideal on mobile.
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
         if (result && !cancelled) {
@@ -74,22 +72,36 @@ export function BarcodeScanner({
         </DialogHeader>
         <DialogBody className="space-y-3">
           {error ? (
-            <p className="text-sm text-terracotta text-center py-8">{error}</p>
+            <div className="rounded-[22px] bg-gradient-to-br from-terracotta/[0.10] to-terracotta/[0.04] p-6 text-center ring-1 ring-terracotta/20">
+              <p className="text-sm font-medium text-terracotta">{error}</p>
+            </div>
           ) : (
             <>
-              <div className="relative aspect-square w-full overflow-hidden rounded-card bg-espresso/90">
+              {/* Camera viewfinder */}
+              <div className="relative aspect-square w-full overflow-hidden rounded-[22px] bg-gradient-to-br from-[#173B25] via-[#102b1b] to-[#0a1d12]">
+                {/* Ambient glow blobs */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full opacity-40 blur-3xl"
+                  style={{ background: 'radial-gradient(circle, rgba(132,204,22,0.35), transparent 70%)' }}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -bottom-12 -left-6 h-28 w-28 rounded-full opacity-30 blur-3xl"
+                  style={{ background: 'radial-gradient(circle, rgba(34,210,123,0.3), transparent 70%)' }}
+                />
                 <video
                   ref={videoRef}
-                  className="h-full w-full object-cover"
+                  className="relative h-full w-full object-cover"
                   muted
                   playsInline
                 />
-                {/* Centered viewfinder guide */}
+                {/* Viewfinder guide */}
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div className="h-24 w-3/4 rounded-input border-2 border-warm-white/80" />
+                  <div className="h-28 w-3/4 rounded-[16px] border-2 border-lime/70 shadow-[0_0_20px_rgba(132,204,22,0.25)]" />
                 </div>
               </div>
-              <p className="text-center text-sm text-espresso/60">
+              <p className="text-center text-sm font-medium text-espresso/60">
                 Point your camera at a product barcode
               </p>
             </>

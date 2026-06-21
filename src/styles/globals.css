@@ -3,24 +3,31 @@
 @tailwind utilities;
 
 :root {
-  /* Colors */
-  --cream: #FAF7F2;
-  --warm-white: #FFFEF9;
-  --latte: #D4C4B0;
-  --espresso: #3D3024;
-  --caramel: #C4956A;
-  --sage: #A8B5A0;
-  --blush: #E8C4C4;
-  --honey: #E8D4A8;
-  --terracotta: #C8846C;
+  /* Colors — Garden Fresh (names preserved, values remapped) */
+  --cream: #F1FBF4;        /* mint white (app bg) */
+  --warm-white: #FFFFFF;   /* clean surface */
+  --latte: #D6E8D8;        /* soft green-gray (borders) */
+  --espresso: #14331F;     /* forest (primary text) */
+  --caramel: #16A34A;      /* emerald (primary accent) */
+  --sage: #22A559;         /* emerald-green (protein) */
+  --blush: #F472A6;        /* rose (fat) */
+  --honey: #F2B53B;        /* amber (carbs) */
+  --terracotta: #F97316;   /* citrus orange (calories) */
+
+  /* Brand-semantic */
+  --forest: #14331F;
+  --emerald: #16A34A;
+  --emerald-dark: #0F7A38;
+  --lime: #84CC16;
+  --citrus: #F97316;
 
   /* Semantic Colors */
   --background: var(--cream);
   --surface: var(--warm-white);
   --border: var(--latte);
   --text-primary: var(--espresso);
-  --text-secondary: #6B5D4D;
-  --text-muted: #9A8B7A;
+  --text-secondary: #3F6B4E;
+  --text-muted: #7A8F80;
   --accent: var(--caramel);
 
   /* Macro Colors */
@@ -35,8 +42,8 @@
   --radius-lg: 16px;
 
   /* Shadows */
-  --shadow-soft: 0 4px 20px rgba(61, 48, 36, 0.08);
-  --shadow-soft-lg: 0 8px 30px rgba(61, 48, 36, 0.12);
+  --shadow-soft: 0 4px 20px rgba(16, 80, 40, 0.08);
+  --shadow-soft-lg: 0 8px 30px rgba(16, 80, 40, 0.12);
 }
 
 * {
@@ -52,17 +59,39 @@ html {
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100vh;
+  font-feature-settings: 'cv05', 'ss01';
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Fraunces', serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* Display + numeric helpers */
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+/* Instrument-grade numerals: tabular alignment + tight tracking for metrics */
+.metric {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.02em;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
 /* Scrollbar styling */
@@ -161,8 +190,100 @@ input, textarea, select {
 
 /* Glass effect for modals */
 .glass {
-  background: rgba(255, 254, 249, 0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
+}
+
+/* --- Login / app-splash helpers --- */
+
+/* Respect iOS/Android safe areas (needs viewport-fit=cover in index.html) */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
+
+/* Garden Fresh brand gradient for the login backdrop */
+.brand-gradient {
+  background:
+    radial-gradient(120% 80% at 50% -10%, #1FBF5A 0%, rgba(31, 191, 90, 0) 60%),
+    linear-gradient(165deg, #16A34A 0%, #0F7A38 55%, #0B5E2C 100%);
+}
+
+/* Soft organic blobs layered over the gradient */
+.brand-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.animate-float { animation: floatY 6s ease-in-out infinite; }
+
+/* --- Motion system --- */
+
+/* Page/route transition: content re-mounts with a keyed wrapper */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: pageEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered reveal — drop on any list/grid container to cascade its children in */
+.stagger > * {
+  opacity: 0;
+  animation: pageEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1)  { animation-delay: 0.03s; }
+.stagger > *:nth-child(2)  { animation-delay: 0.07s; }
+.stagger > *:nth-child(3)  { animation-delay: 0.11s; }
+.stagger > *:nth-child(4)  { animation-delay: 0.15s; }
+.stagger > *:nth-child(5)  { animation-delay: 0.19s; }
+.stagger > *:nth-child(6)  { animation-delay: 0.23s; }
+.stagger > *:nth-child(7)  { animation-delay: 0.27s; }
+.stagger > *:nth-child(8)  { animation-delay: 0.31s; }
+.stagger > *:nth-child(9)  { animation-delay: 0.35s; }
+.stagger > *:nth-child(n+10) { animation-delay: 0.39s; }
+
+/* Shimmer skeleton */
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    rgba(214, 232, 216, 0.35) 30%,
+    rgba(214, 232, 216, 0.7) 50%,
+    rgba(214, 232, 216, 0.35) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Pressable — tactile feedback for tappable surfaces */
+.pressable {
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Honor reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Masonry grid for recipes */

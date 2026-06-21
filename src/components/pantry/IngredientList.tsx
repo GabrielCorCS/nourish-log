@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Apple, Search } from 'lucide-react'
+import { Apple, Search, Plus } from 'lucide-react'
 import { Input, Button } from '@/components/ui'
 import { EmptyState, ListSkeleton } from '@/components/shared'
 import { IngredientCard } from './IngredientCard'
@@ -49,6 +49,7 @@ export function IngredientList() {
 
   return (
     <div className="space-y-4">
+      {/* Search + Add row */}
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
@@ -58,7 +59,9 @@ export function IngredientList() {
             leftIcon={<Search className="h-4 w-4" />}
           />
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>Add</Button>
+        <Button onClick={() => setIsFormOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+          Add
+        </Button>
       </div>
 
       {filteredIngredients?.length === 0 ? (
@@ -77,7 +80,7 @@ export function IngredientList() {
           }
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="stagger grid gap-3 sm:grid-cols-2">
           {filteredIngredients?.map((ingredient) => (
             <IngredientCard
               key={ingredient.id}

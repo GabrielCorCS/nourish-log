@@ -19,11 +19,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     },
     ref
   ) => {
-    const baseStyles = 'rounded-card overflow-hidden'
+    const baseStyles =
+      'rounded-card overflow-hidden transition-all duration-300 ease-spring'
 
     const variants = {
-      default: 'bg-warm-white',
-      elevated: 'bg-warm-white shadow-soft',
+      default: 'bg-warm-white ring-1 ring-latte/60',
+      elevated: 'bg-warm-white shadow-soft ring-1 ring-latte/40',
       outline: 'bg-warm-white border border-latte',
     }
 

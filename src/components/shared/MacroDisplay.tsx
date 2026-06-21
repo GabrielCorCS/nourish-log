@@ -65,7 +65,7 @@ export function MacroDisplay({
               {macro.label}
             </span>
           )}
-          <span className={cn(sizes[size].value, macro.color)}>
+          <span className={cn('tnum', sizes[size].value, macro.color)}>
             {macro.value}
             {macro.unit && <span className="text-espresso/50">{macro.unit}</span>}
           </span>
@@ -80,6 +80,7 @@ interface MacroPillsProps {
   protein: number
   carbs: number
   fat: number
+  hideCalories?: boolean
   className?: string
 }
 
@@ -88,20 +89,23 @@ export function MacroPills({
   protein,
   carbs,
   fat,
+  hideCalories = false,
   className,
 }: MacroPillsProps) {
   return (
-    <div className={cn('flex flex-wrap gap-2', className)}>
-      <span className="px-2 py-0.5 bg-terracotta/10 text-terracotta text-xs font-medium rounded-full">
-        {Math.round(calories)} cal
-      </span>
-      <span className="px-2 py-0.5 bg-sage/20 text-sage text-xs font-medium rounded-full">
+    <div className={cn('flex flex-wrap gap-1.5', className)}>
+      {!hideCalories && (
+        <span className="metric rounded-full bg-terracotta/10 px-2 py-0.5 text-xs font-semibold text-terracotta">
+          {Math.round(calories)} cal
+        </span>
+      )}
+      <span className="metric rounded-full bg-sage/15 px-2 py-0.5 text-xs font-semibold text-sage">
         {formatMacro(protein)}g P
       </span>
-      <span className="px-2 py-0.5 bg-honey/30 text-espresso text-xs font-medium rounded-full">
+      <span className="metric rounded-full bg-honey/25 px-2 py-0.5 text-xs font-semibold text-espresso/75">
         {formatMacro(carbs)}g C
       </span>
-      <span className="px-2 py-0.5 bg-blush/30 text-espresso text-xs font-medium rounded-full">
+      <span className="metric rounded-full bg-blush/25 px-2 py-0.5 text-xs font-semibold text-espresso/75">
         {formatMacro(fat)}g F
       </span>
     </div>

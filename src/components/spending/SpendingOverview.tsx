@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { DollarSign, TrendingUp, Store, Package } from 'lucide-react'
-import { Card, Select } from '@/components/ui'
+import { Select } from '@/components/ui'
 import { EmptyState, LoadingState } from '@/components/shared'
 import {
   useGroceryPurchases,
@@ -45,7 +45,7 @@ function getDateRange(period: TimePeriod): { start: Date; end: Date } | undefine
 export function SpendingOverview() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('month')
   const dateRange = getDateRange(timePeriod)
-  
+
   const { data: purchases, isLoading } = useGroceryPurchases(dateRange)
 
   const analytics = useMemo(() => {
@@ -68,8 +68,8 @@ export function SpendingOverview() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Time Period Selector */}
+    <div className="space-y-5">
+      {/* Time period selector */}
       <div className="flex justify-end">
         <Select
           value={timePeriod}
@@ -87,76 +87,95 @@ export function SpendingOverview() {
         />
       ) : (
         <>
-          {/* Summary Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card variant="elevated" padding="lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-sage/20">
-                  <DollarSign className="h-6 w-6 text-sage" />
-                </div>
-                <div>
-                  <p className="text-sm text-espresso/60">Total Spent</p>
-                  <p className="text-2xl font-bold text-espresso">
+          {/* Bento summary — dark hero total + two color-blocked stat tiles */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {/* Hero: total spending */}
+            <div className="relative col-span-2 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#173B25] via-[#102b1b] to-[#0a1d12] p-6 text-white lg:col-span-2">
+              {/* Glows */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full opacity-55 blur-3xl"
+                style={{ background: 'radial-gradient(circle, rgba(132,204,22,0.4), transparent 70%)' }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -bottom-20 -left-8 h-44 w-44 rounded-full opacity-35 blur-3xl"
+                style={{ background: 'radial-gradient(circle, rgba(34,210,123,0.35), transparent 70%)' }}
+              />
+              <div className="relative">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-lime/90">
+                  Total Spent
+                </p>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="font-display text-[3.5rem] font-semibold leading-[0.9] tracking-tight text-white sm:text-[4.5rem]">
                     ${analytics.totalSpending.toFixed(2)}
-                  </p>
+                  </span>
                 </div>
+                <p className="metric mt-2 text-sm font-medium text-white/60">
+                  {analytics.purchaseCount} purchase{analytics.purchaseCount !== 1 ? 's' : ''}
+                </p>
               </div>
-            </Card>
+            </div>
 
-            <Card variant="elevated" padding="lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-honey/20">
-                  <Package className="h-6 w-6 text-honey" />
-                </div>
-                <div>
-                  <p className="text-sm text-espresso/60">Purchases</p>
-                  <p className="text-2xl font-bold text-espresso">
-                    {analytics.purchaseCount}
-                  </p>
-                </div>
+            {/* Stat: purchases count */}
+            <div className="flex flex-col justify-between rounded-[22px] bg-gradient-to-br from-emerald/[0.12] to-emerald/[0.04] p-4 ring-1 ring-emerald/20">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wide text-espresso/55">
+                  Trips
+                </span>
+                <Package className="h-4 w-4 text-emerald-dark" />
               </div>
-            </Card>
+              <div className="metric mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-bold leading-none text-espresso">
+                  {analytics.purchaseCount}
+                </span>
+              </div>
+            </div>
 
-            <Card variant="elevated" padding="lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-blush/20">
-                  <TrendingUp className="h-6 w-6 text-blush" />
-                </div>
-                <div>
-                  <p className="text-sm text-espresso/60">Avg per Purchase</p>
-                  <p className="text-2xl font-bold text-espresso">
-                    ${(analytics.totalSpending / analytics.purchaseCount).toFixed(2)}
-                  </p>
-                </div>
+            {/* Stat: avg per purchase */}
+            <div className="flex flex-col justify-between rounded-[22px] bg-gradient-to-br from-honey/[0.18] to-honey/[0.06] p-4 ring-1 ring-honey/30">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wide text-espresso/55">
+                  Avg / trip
+                </span>
+                <TrendingUp className="h-4 w-4 text-[#A9791B]" />
               </div>
-            </Card>
+              <div className="metric mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-bold leading-none text-espresso">
+                  ${(analytics.totalSpending / analytics.purchaseCount).toFixed(2)}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Spending by Store */}
-          <Card variant="elevated" padding="lg">
-            <div className="flex items-center gap-2 mb-4">
-              <Store className="h-5 w-5 text-espresso" />
-              <h3 className="text-lg font-semibold text-espresso">By Store</h3>
+          {/* By Store */}
+          <div className="rounded-[22px] bg-warm-white p-5 ring-1 ring-latte/60">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="grid h-8 w-8 place-items-center rounded-xl bg-emerald/10 text-emerald-dark">
+                <Store className="h-4 w-4" />
+              </div>
+              <h3 className="font-display text-lg font-semibold text-espresso">By Store</h3>
             </div>
+
             {analytics.byStore.length === 0 ? (
               <p className="text-sm text-espresso/50">No store data available</p>
             ) : (
               <div className="space-y-3">
                 {analytics.byStore.map((store) => (
                   <div key={store.storeId || 'unknown'} className="flex items-center gap-3">
-                    <span className="text-xl">{store.storeEmoji || '🏪'}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
-                        <p className="font-medium text-espresso truncate">
+                    <span className="text-xl leading-none">{store.storeEmoji || '🏪'}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between">
+                        <p className="truncate font-semibold text-espresso">
                           {store.storeName}
                         </p>
-                        <p className="font-semibold text-espresso">
+                        <p className="metric ml-3 shrink-0 font-bold text-espresso">
                           ${store.total.toFixed(2)}
                         </p>
                       </div>
-                      <div className="mt-1 h-2 bg-latte rounded-full overflow-hidden">
+                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-latte/50">
                         <div
-                          className="h-full bg-caramel rounded-full"
+                          className="h-full rounded-full bg-gradient-to-r from-[#34D27B] to-emerald transition-[width] duration-700 ease-spring"
                           style={{
                             width: `${(store.total / analytics.totalSpending) * 100}%`,
                           }}
@@ -167,14 +186,17 @@ export function SpendingOverview() {
                 ))}
               </div>
             )}
-          </Card>
+          </div>
 
-          {/* Spending by Category */}
-          <Card variant="elevated" padding="lg">
-            <div className="flex items-center gap-2 mb-4">
-              <Package className="h-5 w-5 text-espresso" />
-              <h3 className="text-lg font-semibold text-espresso">By Category</h3>
+          {/* By Category */}
+          <div className="rounded-[22px] bg-warm-white p-5 ring-1 ring-latte/60">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="grid h-8 w-8 place-items-center rounded-xl bg-honey/15 text-[#A9791B]">
+                <Package className="h-4 w-4" />
+              </div>
+              <h3 className="font-display text-lg font-semibold text-espresso">By Category</h3>
             </div>
+
             {analytics.byCategory.length === 0 ? (
               <p className="text-sm text-espresso/50">No category data available</p>
             ) : (
@@ -185,19 +207,19 @@ export function SpendingOverview() {
                   )
                   return (
                     <div key={cat.category} className="flex items-center gap-3">
-                      <span className="text-xl">{categoryInfo?.emoji || '📦'}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-baseline">
-                          <p className="font-medium text-espresso truncate">
+                      <span className="text-xl leading-none">{categoryInfo?.emoji || '📦'}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between">
+                          <p className="truncate font-semibold text-espresso">
                             {categoryInfo?.label || cat.category}
                           </p>
-                          <p className="font-semibold text-espresso">
+                          <p className="metric ml-3 shrink-0 font-bold text-espresso">
                             ${cat.total.toFixed(2)}
                           </p>
                         </div>
-                        <div className="mt-1 h-2 bg-latte rounded-full overflow-hidden">
+                        <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-latte/50">
                           <div
-                            className="h-full bg-sage rounded-full"
+                            className="h-full rounded-full bg-gradient-to-r from-citrus to-honey transition-[width] duration-700 ease-spring"
                             style={{
                               width: `${(cat.total / analytics.totalSpending) * 100}%`,
                             }}
@@ -209,7 +231,7 @@ export function SpendingOverview() {
                 })}
               </div>
             )}
-          </Card>
+          </div>
         </>
       )}
     </div>

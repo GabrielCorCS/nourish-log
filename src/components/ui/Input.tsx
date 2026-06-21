@@ -33,10 +33,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full h-10 px-3 rounded-input',
-              'bg-cream border border-latte',
+              'w-full h-11 px-3.5 rounded-input',
+              'bg-warm-white border border-latte hover:border-emerald/40',
               'text-espresso placeholder:text-espresso/40',
-              'focus:outline-none focus:ring-2 focus:ring-caramel focus:border-transparent',
+              'focus:outline-none focus:ring-2 focus:ring-emerald/70 focus:border-transparent',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'transition-all duration-200',
               leftIcon && 'pl-10',
@@ -90,10 +90,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           className={cn(
-            'w-full px-3 py-2 rounded-input min-h-[80px] resize-y',
-            'bg-cream border border-latte',
+            'w-full px-3.5 py-2.5 rounded-input min-h-[80px] resize-y',
+            'bg-warm-white border border-latte hover:border-emerald/40',
             'text-espresso placeholder:text-espresso/40',
-            'focus:outline-none focus:ring-2 focus:ring-caramel focus:border-transparent',
+            'focus:outline-none focus:ring-2 focus:ring-emerald/70 focus:border-transparent',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'transition-all duration-200',
             error && 'border-terracotta focus:ring-terracotta',

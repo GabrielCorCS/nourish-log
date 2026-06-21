@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search, Plus, ScanLine, Loader2, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Input, Button, Card, Select } from '@/components/ui'
+import { Input, Button, Select } from '@/components/ui'
 import { useSearchIngredients, useCreateIngredient } from '@/hooks'
 import { useUIStore } from '@/stores'
 import { INGREDIENT_CATEGORIES, SERVING_UNITS } from '@/lib/constants'
@@ -61,10 +61,8 @@ export function IngredientSearch({
   const [debounced, setDebounced] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const [lookingUpBarcode, setLookingUpBarcode] = useState(false)
-  // When set, the add-inline form is shown (optionally prefilled from OFF).
   const [draft, setDraft] = useState<IngredientDraft | null>(null)
 
-  // Debounce the text used for the (network) OFF search.
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 350)
     return () => clearTimeout(t)
@@ -79,8 +77,6 @@ export function IngredientSearch({
     (i) => !excluded.has(i.id)
   )
 
-  // Library barcodes/off_ids so we don't show duplicate OFF results that the
-  // household already has (those are surfaced as library hits instead).
   const knownOffIds = useMemo(
     () =>
       new Set(
@@ -93,7 +89,6 @@ export function IngredientSearch({
 
   const visibleOff = (offResults ?? []).filter((p) => !knownOffIds.has(p.code))
 
-  // Create an OFF product in the household library, then select it.
   const handleSelectOff = async (product: OffProduct) => {
     try {
       const created = await createIngredient.mutateAsync(
@@ -118,10 +113,8 @@ export function IngredientSearch({
     try {
       const product = await getProductByBarcode(barcode)
       if (product) {
-        // Prefill the add-inline form so the user can review before saving.
         setDraft(offToIngredientDraft(product))
       } else {
-        // Unknown barcode — open a blank form with the barcode prefilled.
         setDraft({ ...emptyDraft, barcode, off_id: barcode })
         addToast('Product not found — add it manually', 'info')
       }
@@ -154,6 +147,7 @@ export function IngredientSearch({
 
   return (
     <div className="space-y-3">
+      {/* Search bar + barcode button */}
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Input
@@ -163,7 +157,7 @@ export function IngredientSearch({
             leftIcon={<Search className="h-4 w-4" />}
             rightIcon={
               offFetching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-emerald" />
               ) : undefined
             }
           />
@@ -182,104 +176,110 @@ export function IngredientSearch({
 
       {showResults && (
         <div className="space-y-3">
-          {/* Library group */}
+          {/* Library results */}
           <div>
-            <p className="px-1 text-xs font-medium uppercase tracking-wide text-espresso/50">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-espresso/55">
               Your library
             </p>
             {hasLibrary ? (
-              <Card variant="outline" padding="none" className="mt-1">
-                {visibleLibrary.map((ingredient) => (
+              <div className="overflow-hidden rounded-[22px] bg-warm-white ring-1 ring-latte/60">
+                {visibleLibrary.map((ingredient, idx) => (
                   <button
                     key={ingredient.id}
                     type="button"
                     onClick={() => handleSelectLibrary(ingredient)}
-                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-latte/20 transition-colors text-left"
+                    className={[
+                      'pressable flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream',
+                      idx > 0 ? 'border-t border-latte/40' : '',
+                    ].join(' ')}
                   >
-                    <span>{ingredient.emoji || '🍽️'}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-espresso truncate">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-xl ring-1 ring-latte/50">
+                      {ingredient.emoji || '🍽️'}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-espresso">
                         {ingredient.name}
                         {ingredient.brand && (
-                          <span className="text-espresso/50 font-normal">
-                            {' '}
-                            · {ingredient.brand}
+                          <span className="font-normal text-espresso/50">
+                            {' '}· {ingredient.brand}
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-espresso/50">
+                      <p className="metric text-xs text-espresso/50">
                         {Math.round(ingredient.calories)} cal ·{' '}
                         {ingredient.serving_size} {ingredient.serving_unit}
                       </p>
                     </div>
-                    <Plus className="h-4 w-4 text-caramel flex-shrink-0" />
+                    <Plus className="h-4 w-4 shrink-0 text-emerald" />
                   </button>
                 ))}
-              </Card>
+              </div>
             ) : (
-              <p className="mt-1 px-1 text-sm text-espresso/40">
+              <p className="px-1 text-sm text-espresso/40">
                 No matches in your library
               </p>
             )}
           </div>
 
-          {/* Open Food Facts group */}
+          {/* Open Food Facts results */}
           {(hasOff || offFetching) && (
             <div>
-              <p className="px-1 text-xs font-medium uppercase tracking-wide text-espresso/50">
+              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-espresso/55">
                 Open Food Facts
               </p>
-              <Card variant="outline" padding="none" className="mt-1">
+              <div className="overflow-hidden rounded-[22px] bg-warm-white ring-1 ring-latte/60">
                 {hasOff
-                  ? visibleOff.map((product) => (
+                  ? visibleOff.map((product, idx) => (
                       <button
                         key={product.code}
                         type="button"
                         onClick={() => handleSelectOff(product)}
                         disabled={createIngredient.isPending}
-                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-latte/20 transition-colors text-left disabled:opacity-50"
+                        className={[
+                          'pressable flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream disabled:opacity-50',
+                          idx > 0 ? 'border-t border-latte/40' : '',
+                        ].join(' ')}
                       >
                         {product.image_small_url ? (
                           <img
                             src={product.image_small_url}
                             alt=""
-                            className="h-8 w-8 rounded object-cover flex-shrink-0"
+                            className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-latte/40"
                           />
                         ) : (
-                          <span className="flex h-8 w-8 items-center justify-center">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-xl ring-1 ring-latte/50">
                             🛒
                           </span>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-espresso truncate">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-espresso">
                             {product.product_name}
                             {product.brands && (
-                              <span className="text-espresso/50 font-normal">
-                                {' '}
-                                · {product.brands}
+                              <span className="font-normal text-espresso/50">
+                                {' '}· {product.brands}
                               </span>
                             )}
                           </p>
-                          <p className="text-xs text-espresso/50">
+                          <p className="metric text-xs text-espresso/50">
                             {Math.round(
                               product.nutriments?.['energy-kcal_100g'] ?? 0
                             )}{' '}
                             cal / 100g
                           </p>
                         </div>
-                        <Plus className="h-4 w-4 text-caramel flex-shrink-0" />
+                        <Plus className="h-4 w-4 shrink-0 text-emerald" />
                       </button>
                     ))
                   : (
-                      <p className="px-3 py-3 text-sm text-espresso/40">
+                      <p className="px-4 py-3 text-sm text-espresso/40">
                         Searching Open Food Facts…
                       </p>
                     )}
-              </Card>
+              </div>
             </div>
           )}
 
-          {/* Add new (inline) */}
+          {/* Add manually */}
           <Button
             type="button"
             variant="ghost"
@@ -311,8 +311,7 @@ export function IngredientSearch({
 }
 
 // ---------------------------------------------------------------------------
-// Compact inline "add new ingredient" form. Outputs an IngredientDraft; the
-// parent owns persistence (so household_id is injected via useCreateIngredient).
+// Compact inline "add new ingredient" form.
 // ---------------------------------------------------------------------------
 interface AddIngredientInlineProps {
   draft: IngredientDraft
@@ -330,7 +329,6 @@ function AddIngredientInline({
   const [form, setForm] = useState<IngredientDraft>(draft)
   const [error, setError] = useState<string | null>(null)
 
-  // Re-sync when a new draft (e.g. from a barcode scan) arrives.
   useEffect(() => {
     setForm(draft)
     setError(null)
@@ -351,8 +349,6 @@ function AddIngredientInline({
       ...form,
       name: form.name.trim(),
       brand: form.brand?.trim() || null,
-      // serving_grams mirrors serving_size when entered in g/ml so weight
-      // entry keeps working for manually added items.
       serving_grams:
         form.serving_unit === 'g' || form.serving_unit === 'ml'
           ? form.serving_size
@@ -361,9 +357,9 @@ function AddIngredientInline({
   }
 
   return (
-    <Card variant="elevated" padding="md" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="font-heading text-base font-semibold text-espresso">
+    <div className="rounded-[22px] bg-warm-white p-5 ring-1 ring-latte/60">
+      <div className="mb-4 flex items-center justify-between">
+        <p className="font-display font-semibold text-espresso">
           New ingredient
         </p>
         <Button
@@ -382,7 +378,7 @@ function AddIngredientInline({
           <img
             src={form.image_url}
             alt=""
-            className="h-16 w-16 rounded-input object-cover"
+            className="h-16 w-16 rounded-xl object-cover ring-1 ring-latte/50"
           />
         )}
 
@@ -429,7 +425,7 @@ function AddIngredientInline({
             options={SERVING_UNITS.map((u) => ({ value: u, label: u }))}
           />
           <Input
-            label="Grams/serving"
+            label="g / serving"
             type="number"
             value={form.serving_grams ?? ''}
             onChange={(e) =>
@@ -445,7 +441,7 @@ function AddIngredientInline({
         </div>
 
         <div className="border-t border-latte pt-4">
-          <p className="text-sm font-medium text-espresso mb-3">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55">
             Nutrition per serving
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -492,6 +488,6 @@ function AddIngredientInline({
           </Button>
         </div>
       </form>
-    </Card>
+    </div>
   )
 }

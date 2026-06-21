@@ -2,23 +2,36 @@ import { useState } from 'react'
 import { Scale, Plus } from 'lucide-react'
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
+  Area,
+  AreaChart,
 } from 'recharts'
 import { format } from 'date-fns'
-import { Card, Button, Input } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
 import { EmptyState } from '@/components/shared'
 import { useBodyMetrics, useAddBodyMetric } from '@/hooks/useBodyMetrics'
 import { useUserSettings } from '@/hooks'
 import { useHousehold } from '@/hooks/useHousehold'
 import { useUIStore } from '@/stores'
 import { cn } from '@/lib/utils'
+import type { TooltipProps } from 'recharts'
 
 const KG_PER_LB = 0.45359237
+
+function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-[16px] bg-warm-white px-3.5 py-2.5 ring-1 ring-latte/60 shadow-soft">
+      <p className="text-xs font-bold uppercase tracking-wide text-espresso/55 mb-0.5">{label}</p>
+      <p className="metric text-lg font-bold text-espresso">
+        {payload[0]?.value}
+      </p>
+    </div>
+  )
+}
 
 export function WeightTracker() {
   const addToast = useUIStore((s) => s.addToast)
@@ -65,24 +78,38 @@ export function WeightTracker() {
   }
 
   return (
-    <Card variant="elevated" padding="lg">
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2">
-          <Scale className="h-4 w-4 text-caramel" />
-          <h2 className="font-heading text-lg font-bold text-espresso">Weight</h2>
-          {latest != null && (
-            <span className="text-sm text-espresso/50">
-              · {latest} {unit}
-            </span>
-          )}
+    <div className="relative overflow-hidden rounded-[28px] bg-warm-white ring-1 ring-latte/60 p-5">
+      {/* Header row */}
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald/12 text-emerald-dark">
+            <Scale className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">Body weight</p>
+            <div className="flex items-baseline gap-2">
+              <h2 className="font-display text-title font-semibold leading-tight text-espresso">
+                Weight
+              </h2>
+              {latest != null && (
+                <span className="metric text-sm font-semibold text-espresso/55">
+                  {latest} {unit}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Partner switcher */}
         {partner && (
-          <div className="flex rounded-input border border-latte overflow-hidden text-xs">
+          <div className="flex overflow-hidden rounded-full border border-latte text-xs">
             <button
               type="button"
               className={cn(
-                'px-2.5 py-1 transition-colors',
-                !subjectId ? 'bg-caramel/15 text-caramel font-medium' : 'text-espresso/60'
+                'pressable px-3 py-1.5 transition-colors font-medium',
+                !subjectId
+                  ? 'bg-emerald text-white'
+                  : 'text-espresso/60 hover:text-espresso'
               )}
               onClick={() => setSubjectId(undefined)}
             >
@@ -91,10 +118,10 @@ export function WeightTracker() {
             <button
               type="button"
               className={cn(
-                'px-2.5 py-1 transition-colors',
+                'pressable px-3 py-1.5 transition-colors font-medium',
                 subjectId === partner.id
-                  ? 'bg-caramel/15 text-caramel font-medium'
-                  : 'text-espresso/60'
+                  ? 'bg-emerald text-white'
+                  : 'text-espresso/60 hover:text-espresso'
               )}
               onClick={() => setSubjectId(partner.id)}
             >
@@ -104,36 +131,55 @@ export function WeightTracker() {
         )}
       </div>
 
+      {/* Chart */}
       {chartData.length > 0 ? (
-        <div className="h-48">
+        <div className="mt-4 h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#D4C4B0" strokeOpacity={0.3} />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#3D3024' }} />
+            <AreaChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#16A34A" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#16A34A" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#D6E8D8" strokeOpacity={0.8} vertical={false} />
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#14331F', fillOpacity: 0.45, fontWeight: 600 }}
+              />
               <YAxis
                 domain={['dataMin - 2', 'dataMax + 2']}
-                tick={{ fontSize: 11, fill: '#3D3024' }}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#14331F', fillOpacity: 0.45 }}
               />
-              <Tooltip />
-              <Line
+              <Tooltip content={<ChartTooltip />} />
+              <Area
                 type="monotone"
                 dataKey="weight"
-                stroke="#C8846C"
-                strokeWidth={2}
-                dot={{ r: 3 }}
+                stroke="#16A34A"
+                strokeWidth={2.5}
+                fill="url(#weightGradient)"
+                dot={{ r: 3, fill: '#16A34A', strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: '#0F7A38', strokeWidth: 0 }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       ) : (
-        <EmptyState
-          icon={<Scale className="h-8 w-8" />}
-          title="No weigh-ins yet"
-          description="Log a weight to start your chart"
-        />
+        <div className="mt-4">
+          <EmptyState
+            icon={<Scale className="h-8 w-8" />}
+            title="No weigh-ins yet"
+            description="Log a weight to start your chart"
+          />
+        </div>
       )}
 
-      <div className="mt-4 flex items-end gap-2">
+      {/* Log form */}
+      <div className="mt-5 flex items-end gap-2">
         <div className="flex-1">
           <Input
             label={`Weight (${unit})`}
@@ -154,14 +200,18 @@ export function WeightTracker() {
             min={0}
           />
         </div>
-        <Button onClick={handleAdd} isLoading={addMetric.isPending} leftIcon={<Plus className="h-4 w-4" />}>
+        <Button
+          onClick={handleAdd}
+          isLoading={addMetric.isPending}
+          leftIcon={<Plus className="h-4 w-4" />}
+        >
           Log
         </Button>
       </div>
 
       <p className="mt-3 text-xs text-espresso/40">
-        Smart-scale sync (Renpho) is coming — see RENPHO.md. For now, log manually here.
+        Smart-scale sync (Renpho) coming soon. Log manually for now.
       </p>
-    </Card>
+    </div>
   )
 }

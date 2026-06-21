@@ -27,64 +27,64 @@ export function RecipeSelector() {
   return (
     <div className="space-y-4">
       <Input
-        placeholder="Search recipes..."
+        placeholder="Search recipes…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         leftIcon={<Search className="h-4 w-4" />}
       />
 
-      <div className="max-h-[300px] overflow-y-auto space-y-2">
+      <div className="max-h-[320px] overflow-y-auto space-y-2 pr-0.5">
         {!filteredRecipes || filteredRecipes.length === 0 ? (
           <EmptyState
             icon={<ChefHat className="h-6 w-6" />}
             title="No recipes found"
-            description={
-              search
-                ? 'Try a different search term'
-                : 'Create some recipes first'
-            }
+            description={search ? 'Try a different search term' : 'Create some recipes first'}
           />
         ) : (
-          filteredRecipes.map((recipe) => {
-            const perServing = {
-              calories: recipe.total_calories / recipe.servings,
-              protein: recipe.total_protein / recipe.servings,
-              carbs: recipe.total_carbs / recipe.servings,
-              fat: recipe.total_fat / recipe.servings,
-            }
+          <ul className="stagger space-y-2">
+            {filteredRecipes.map((recipe) => {
+              const perServing = {
+                calories: recipe.total_calories / recipe.servings,
+                protein: recipe.total_protein / recipe.servings,
+                carbs: recipe.total_carbs / recipe.servings,
+                fat: recipe.total_fat / recipe.servings,
+              }
 
-            return (
-              <button
-                key={recipe.id}
-                onClick={() => handleSelect(recipe)}
-                className={cn(
-                  'w-full flex items-start gap-3 p-3 rounded-card',
-                  'bg-cream border-2 border-transparent',
-                  'hover:border-caramel hover:bg-caramel/5',
-                  'transition-all duration-200 text-left',
-                  'focus:outline-none focus:ring-2 focus:ring-caramel'
-                )}
-              >
-                <span className="text-2xl flex-shrink-0">
-                  {recipe.emoji || '🍽️'}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-espresso truncate">
-                    {recipe.name}
-                  </p>
-                  <p className="text-xs text-espresso/50 mb-2">
-                    {recipe.servings} servings
-                  </p>
-                  <MacroPills
-                    calories={perServing.calories}
-                    protein={perServing.protein}
-                    carbs={perServing.carbs}
-                    fat={perServing.fat}
-                  />
-                </div>
-              </button>
-            )
-          })
+              return (
+                <li key={recipe.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(recipe)}
+                    className={cn(
+                      'pressable w-full flex items-start gap-3 rounded-[22px] p-3.5 text-left',
+                      'bg-gradient-to-br from-emerald/[0.07] to-emerald/[0.02] ring-1 ring-emerald/12',
+                      'transition-all duration-200',
+                      'hover:ring-emerald/35 hover:from-emerald/[0.12]',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald'
+                    )}
+                  >
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-warm-white text-2xl shadow-soft ring-1 ring-latte/60">
+                      {recipe.emoji || '🍽️'}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display font-semibold text-espresso truncate">
+                        {recipe.name}
+                      </p>
+                      <p className="metric text-xs text-espresso/45 mb-2">
+                        {recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'}
+                      </p>
+                      <MacroPills
+                        calories={perServing.calories}
+                        protein={perServing.protein}
+                        carbs={perServing.carbs}
+                        fat={perServing.fat}
+                      />
+                    </div>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Store, Plus, Pencil, Trash2 } from 'lucide-react'
-import { Button, Card } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { EmptyState, ListSkeleton } from '@/components/shared'
 import { StoreForm } from './StoreForm'
 import { useStores, useDeleteStore, type Store as StoreType } from '@/hooks/useStores'
@@ -41,10 +41,11 @@ export function StoreList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-espresso">Your Stores</h3>
-        <Button size="sm" onClick={() => setIsFormOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">
+          {stores?.length ?? 0} store{(stores?.length ?? 0) !== 1 ? 's' : ''}
+        </p>
+        <Button size="sm" onClick={() => setIsFormOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
           Add Store
         </Button>
       </div>
@@ -57,34 +58,40 @@ export function StoreList() {
           action={{ label: 'Add Store', onClick: () => setIsFormOpen(true) }}
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="stagger grid gap-3 sm:grid-cols-2">
           {stores?.map((store) => (
-            <Card key={store.id} variant="elevated" padding="md">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{store.emoji || '🏪'}</span>
-                <span className="flex-1 font-medium text-espresso">
-                  {store.name}
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleEdit(store)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-terracotta"
-                    onClick={() => handleDelete(store)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+            <div
+              key={store.id}
+              className="pressable flex items-center gap-3 rounded-[22px] bg-warm-white p-4 ring-1 ring-latte/60 transition-shadow hover:shadow-soft"
+            >
+              {/* Store avatar */}
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-emerald/[0.10] to-emerald/[0.04] text-2xl ring-1 ring-emerald/15">
+                {store.emoji || '🏪'}
               </div>
-            </Card>
+
+              <span className="flex-1 font-display font-semibold text-espresso">
+                {store.name}
+              </span>
+
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-espresso/40 hover:text-emerald-dark"
+                  onClick={() => handleEdit(store)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-espresso/30 hover:text-terracotta hover:bg-terracotta/10"
+                  onClick={() => handleDelete(store)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}

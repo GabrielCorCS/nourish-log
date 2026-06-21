@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { Button, Textarea } from '@/components/ui'
+import { Textarea } from '@/components/ui'
 import { MacroDisplay } from '@/components/shared'
 import { useLogMealStore } from '@/stores'
 
@@ -20,37 +20,39 @@ export function ServingSizeInput() {
   const showServingsControl = source === 'recipe' && selectedRecipe
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Servings stepper */}
       {showServingsControl && (
-        <div>
-          <label className="block text-sm font-medium text-espresso mb-3">
+        <div className="rounded-[22px] bg-gradient-to-br from-emerald/[0.09] to-emerald/[0.03] p-4 ring-1 ring-emerald/15">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55">
             Number of servings
-          </label>
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
+          </p>
+          <div className="flex items-center justify-center gap-5">
+            <button
+              type="button"
               onClick={() => setServings(Math.max(0.5, servings - 0.5))}
+              className="pressable grid h-10 w-10 place-items-center rounded-2xl bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60 transition-colors hover:ring-emerald/40"
             >
               <Minus className="h-4 w-4" />
-            </Button>
-            <span className="text-3xl font-bold text-espresso w-16 text-center">
+            </button>
+            <span className="metric min-w-[4rem] text-center text-4xl font-bold text-espresso">
               {servings}
             </span>
-            <Button
-              variant="outline"
-              size="icon"
+            <button
+              type="button"
               onClick={() => setServings(servings + 0.5)}
+              className="pressable grid h-10 w-10 place-items-center rounded-2xl bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60 transition-colors hover:ring-emerald/40"
             >
               <Plus className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
-      <div className="p-4 bg-cream rounded-card">
-        <p className="text-sm font-medium text-espresso mb-3 text-center">
-          Nutrition {showServingsControl && `(${servings} serving${servings !== 1 ? 's' : ''})`}
+      {/* Nutrition strip */}
+      <div className="rounded-[22px] bg-cream p-4 ring-1 ring-latte/40">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55 text-center">
+          Nutrition{showServingsControl && ` · ${servings} serving${servings !== 1 ? 's' : ''}`}
         </p>
         <MacroDisplay
           calories={totalCalories}
@@ -62,11 +64,12 @@ export function ServingSizeInput() {
         />
       </div>
 
+      {/* Notes */}
       <Textarea
         label="Notes (optional)"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
-        placeholder="Add any notes about this meal..."
+        placeholder="Add any notes about this meal…"
         rows={2}
       />
     </div>

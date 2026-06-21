@@ -190,7 +190,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
             </div>
 
             <div className="border-t border-latte pt-4">
-              <p className="text-sm font-medium text-espresso mb-3">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55">
                 Nutrition per serving
               </p>
               <div className="grid grid-cols-2 gap-4">

@@ -46,14 +46,14 @@ export function IngredientPicker({
       {/* Search and Add */}
       <IngredientSearch
         onSelect={handleSelect}
-        placeholder="Search ingredients to add..."
+        placeholder="Search ingredients to add…"
         excludeIds={selectedIngredients.map((si) => si.ingredient.id)}
       />
 
       {/* Selected Ingredients */}
       {selectedIngredients.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-espresso">
+          <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">
             Selected ({selectedIngredients.length})
           </p>
           {selectedIngredients.map(({ ingredient, amount, unit }) => {
@@ -76,39 +76,43 @@ export function IngredientPicker({
               onUpdate(ingredient.id, { amount: Math.max(step, Math.round(n * 100) / 100) })
 
             return (
-              <div key={ingredient.id} className="p-3 bg-cream rounded-input space-y-2">
+              <div
+                key={ingredient.id}
+                className="space-y-2.5 rounded-[18px] bg-cream p-3.5 ring-1 ring-latte/40"
+              >
                 <div className="flex items-center gap-3">
-                  <span className="text-lg">{ingredient.emoji || '🍽️'}</span>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-warm-white text-lg shadow-soft">
+                    {ingredient.emoji || '🍽️'}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-espresso truncate">
+                    <p className="text-sm font-semibold text-espresso truncate">
                       {ingredient.name}
                     </p>
-                    <p className="text-xs text-espresso/50">
+                    <p className="metric text-xs text-espresso/50">
                       {Math.round(nutrition.calories)} cal · {Math.round(nutrition.protein)}p{' '}
                       {Math.round(nutrition.carbs)}c {Math.round(nutrition.fat)}f
                     </p>
                   </div>
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-terracotta"
+                    className="pressable flex h-7 w-7 items-center justify-center rounded-full bg-terracotta/10 text-terracotta transition-colors hover:bg-terracotta/20"
                     onClick={() => onRemove(ingredient.id)}
+                    aria-label={`Remove ${ingredient.name}`}
                   >
                     <X className="h-3 w-3" />
-                  </Button>
+                  </button>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
                   {canWeigh ? (
-                    <div className="flex rounded-input border border-latte overflow-hidden text-xs bg-warm-white">
+                    <div className="flex overflow-hidden rounded-[10px] ring-1 ring-latte/60 bg-warm-white text-xs">
                       <button
                         type="button"
                         className={cn(
                           'px-2.5 py-1 transition-colors',
                           unit === 'serving'
-                            ? 'bg-caramel/15 text-caramel font-medium'
-                            : 'text-espresso/60'
+                            ? 'bg-emerald/15 text-emerald-dark font-semibold'
+                            : 'text-espresso/55'
                         )}
                         onClick={() => changeUnit('serving')}
                       >
@@ -119,8 +123,8 @@ export function IngredientPicker({
                         className={cn(
                           'px-2.5 py-1 transition-colors',
                           unit !== 'serving'
-                            ? 'bg-caramel/15 text-caramel font-medium'
-                            : 'text-espresso/60'
+                            ? 'bg-emerald/15 text-emerald-dark font-semibold'
+                            : 'text-espresso/55'
                         )}
                         onClick={() => changeUnit(wUnit)}
                       >
@@ -131,7 +135,8 @@ export function IngredientPicker({
                     <span className="text-xs text-espresso/40">per serving</span>
                   )}
 
-                  <div className="flex items-center gap-1">
+                  {/* Amount stepper */}
+                  <div className="flex items-center gap-1 rounded-[10px] bg-warm-white px-1 py-0.5 ring-1 ring-latte/60">
                     <Button
                       type="button"
                       variant="ghost"
@@ -141,7 +146,7 @@ export function IngredientPicker({
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="min-w-[3.5rem] text-center text-sm font-medium">
+                    <span className="metric min-w-[3.5rem] text-center text-sm font-semibold text-espresso">
                       {amount}
                       {unit === 'serving' ? '' : ` ${unit}`}
                     </span>

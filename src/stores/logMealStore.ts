@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { MealType, Recipe, Ingredient } from '@/types/database'
 import { scaleIngredient, type AmountUnit } from '@/lib/nutrition'
+import type { OffProduct } from '@/lib/openfoodfacts'
 
 export interface SelectedIngredient {
   ingredient: Ingredient
@@ -8,12 +9,31 @@ export interface SelectedIngredient {
   unit: AmountUnit
 }
 
+// The log flow now opens on a "hub" and defaults the meal type by time of day,
+// so the common path (scan / re-log) is just a tap or two.
+export type LogStep =
+  | 'hub'
+  | 'scan'
+  | 'scan-confirm'
+  | 'recipe'
+  | 'ingredients'
+  | 'servings'
+  | 'preview'
+
+export function mealTypeByHour(): MealType {
+  const h = new Date().getHours()
+  if (h < 11) return 'breakfast'
+  if (h < 16) return 'lunch'
+  if (h < 21) return 'dinner'
+  return 'snack'
+}
+
 interface LogMealStore {
   // Current step
-  step: 'meal-type' | 'source' | 'recipe' | 'ingredients' | 'servings' | 'preview'
+  step: LogStep
 
   // Selection state
-  mealType: MealType | null
+  mealType: MealType
   source: 'recipe' | 'quick-add' | null
   selectedRecipe: Recipe | null
   selectedIngredients: SelectedIngredient[]
@@ -22,6 +42,10 @@ interface LogMealStore {
   // Proxy logging: whose log this entry belongs to (null = the current user)
   subjectUserId: string | null
 
+  // Barcode scan state
+  scannedProduct: OffProduct | null
+  scanGrams: number
+
   // Calculated totals
   totalCalories: number
   totalProtein: number
@@ -29,10 +53,12 @@ interface LogMealStore {
   totalFat: number
 
   // Actions
-  setStep: (step: LogMealStore['step']) => void
+  setStep: (step: LogStep) => void
   setMealType: (type: MealType) => void
   setSource: (source: 'recipe' | 'quick-add') => void
   setSelectedRecipe: (recipe: Recipe | null) => void
+  setScannedProduct: (product: OffProduct | null) => void
+  setScanGrams: (grams: number) => void
   addIngredient: (ingredient: Ingredient, amount?: number, unit?: AmountUnit) => void
   updateIngredient: (
     ingredientId: string,
@@ -46,33 +72,41 @@ interface LogMealStore {
   reset: () => void
 }
 
-const initialState = {
-  step: 'meal-type' as const,
-  mealType: null,
-  source: null,
-  selectedRecipe: null,
-  selectedIngredients: [] as SelectedIngredient[],
-  servings: 1,
-  notes: '',
-  subjectUserId: null as string | null,
-  totalCalories: 0,
-  totalProtein: 0,
-  totalCarbs: 0,
-  totalFat: 0,
+function freshState() {
+  return {
+    step: 'hub' as LogStep,
+    mealType: mealTypeByHour(),
+    source: null,
+    selectedRecipe: null,
+    selectedIngredients: [] as SelectedIngredient[],
+    servings: 1,
+    notes: '',
+    subjectUserId: null as string | null,
+    scannedProduct: null as OffProduct | null,
+    scanGrams: 100,
+    totalCalories: 0,
+    totalProtein: 0,
+    totalCarbs: 0,
+    totalFat: 0,
+  }
 }
 
 export const useLogMealStore = create<LogMealStore>((set, get) => ({
-  ...initialState,
+  ...freshState(),
 
   setStep: (step) => set({ step }),
 
-  setMealType: (mealType) => set({ mealType, step: 'source' }),
+  setMealType: (mealType) => set({ mealType }),
 
   setSource: (source) =>
     set({
       source,
       step: source === 'recipe' ? 'recipe' : 'ingredients',
     }),
+
+  setScannedProduct: (scannedProduct) => set({ scannedProduct }),
+
+  setScanGrams: (scanGrams) => set({ scanGrams: Math.max(1, scanGrams) }),
 
   setSelectedRecipe: (recipe) => {
     if (recipe) {
@@ -176,5 +210,5 @@ export const useLogMealStore = create<LogMealStore>((set, get) => ({
     })
   },
 
-  reset: () => set(initialState),
+  reset: () => set(freshState()),
 }))

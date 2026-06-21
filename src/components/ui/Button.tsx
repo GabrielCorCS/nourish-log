@@ -26,17 +26,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const baseStyles = `
       inline-flex items-center justify-center gap-2
-      font-medium transition-all duration-200
-      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel focus-visible:ring-offset-2
-      disabled:opacity-50 disabled:cursor-not-allowed
+      font-semibold transition-all duration-200 ease-spring
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
+      select-none
     `
 
     const variants = {
-      primary: 'bg-caramel text-white hover:bg-caramel/90 active:scale-[0.98]',
-      secondary: 'bg-latte/30 text-espresso hover:bg-latte/50 active:scale-[0.98]',
-      ghost: 'text-espresso hover:bg-latte/30 active:scale-[0.98]',
-      outline: 'border-2 border-latte text-espresso hover:bg-latte/20 active:scale-[0.98]',
-      danger: 'bg-terracotta text-white hover:bg-terracotta/90 active:scale-[0.98]',
+      primary:
+        'bg-gradient-to-b from-emerald to-emerald-dark text-white shadow-soft hover:shadow-soft-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
+      secondary:
+        'bg-sage/15 text-emerald-dark hover:bg-sage/25 active:scale-[0.98]',
+      ghost:
+        'text-espresso hover:bg-sage/12 active:scale-[0.97]',
+      outline:
+        'border border-latte text-espresso hover:border-emerald/50 hover:bg-sage/10 active:scale-[0.98]',
+      danger:
+        'bg-terracotta text-white shadow-soft hover:bg-terracotta/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
     }
 
     const sizes = {

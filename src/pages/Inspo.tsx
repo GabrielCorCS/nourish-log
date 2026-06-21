@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, Sparkles, Check, Trash2, ExternalLink } from 'lucide-react'
 import { PageContainer } from '@/components/layout'
-import { Card, Button, Input } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
 import { EmptyState, LoadingState } from '@/components/shared'
 import {
   useWishlist,
@@ -49,6 +49,9 @@ export function Inspo() {
     }
   }
 
+  const pending = items?.filter((i) => !i.is_done) ?? []
+  const done = items?.filter((i) => i.is_done) ?? []
+
   return (
     <PageContainer
       title="Inspo"
@@ -59,8 +62,43 @@ export function Inspo() {
         </Button>
       }
     >
+      {/* Hero banner */}
+      <div className="relative mb-5 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#173B25] via-[#102b1b] to-[#0a1d12] p-6 text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full opacity-50 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(132,204,22,0.45), transparent 70%)' }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-16 -left-8 h-40 w-40 rounded-full opacity-35 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.4), transparent 70%)' }}
+        />
+        <div className="relative flex items-end justify-between gap-4">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-lime/90">
+              Shared board
+            </span>
+            <h1 className="mt-1 font-display text-title font-semibold text-white">
+              Inspo
+            </h1>
+            <p className="mt-1.5 text-sm text-white/65">
+              Things you're craving — your partner sees it too.
+            </p>
+          </div>
+          <div className="metric shrink-0 text-right">
+            <span className="text-3xl font-bold text-white">{pending.length}</span>
+            <span className="block text-[11px] font-medium uppercase tracking-wide text-white/50">
+              to try
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Add form tile */}
       {adding && (
-        <Card variant="elevated" padding="lg" className="mb-4 space-y-3">
+        <div className="mb-5 rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60 space-y-3 animate-slide-up">
+          <h2 className="font-display text-lg font-semibold text-espresso">New idea</h2>
           <Input
             label="What do you want?"
             value={title}
@@ -76,9 +114,9 @@ export function Inspo() {
             label="Link (optional)"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://..."
+            placeholder="https://…"
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-1">
             <Button variant="ghost" onClick={() => setAdding(false)}>
               Cancel
             </Button>
@@ -86,11 +124,11 @@ export function Inspo() {
               Add
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {isLoading ? (
-        <LoadingState message="Loading your board..." />
+        <LoadingState message="Loading your board…" />
       ) : !items || items.length === 0 ? (
         <EmptyState
           icon={<Sparkles className="h-8 w-8" />}
@@ -99,61 +137,128 @@ export function Inspo() {
           action={{ label: 'Add idea', onClick: () => setAdding(true) }}
         />
       ) : (
-        <div className="space-y-2">
-          {items.map((item) => (
-            <Card key={item.id} variant="elevated" padding="sm">
-              <div className="flex items-start gap-3">
-                <button
-                  type="button"
-                  onClick={() => toggleDone.mutate({ id: item.id, isDone: !item.is_done })}
-                  className={cn(
-                    'mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors',
-                    item.is_done
-                      ? 'bg-sage border-sage text-warm-white'
-                      : 'border-latte hover:border-sage'
-                  )}
-                >
-                  {item.is_done && <Check className="h-3 w-3" />}
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={cn(
-                      'font-medium text-espresso',
-                      item.is_done && 'line-through text-espresso/40'
-                    )}
-                  >
-                    {item.title}
-                  </p>
-                  {item.note && <p className="text-sm text-espresso/60">{item.note}</p>}
-                  <div className="flex items-center gap-3 mt-1 text-xs text-espresso/40">
-                    <span>
-                      {memberEmoji(item.created_by)} {memberName(item.created_by)}
-                    </span>
-                    {item.url && (
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-caramel hover:underline"
-                      >
-                        <ExternalLink className="h-3 w-3" /> link
-                      </a>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-terracotta"
-                  onClick={() => deleteItem.mutate(item.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </Card>
-          ))}
+        <div className="space-y-5">
+          {/* Pending items */}
+          {pending.length > 0 && (
+            <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55">
+                To try · {pending.length}
+              </p>
+              <ul className="stagger space-y-2">
+                {pending.map((item) => (
+                  <InspoItem
+                    key={item.id}
+                    item={item}
+                    memberEmoji={memberEmoji}
+                    memberName={memberName}
+                    onToggle={() => toggleDone.mutate({ id: item.id, isDone: !item.is_done })}
+                    onDelete={() => deleteItem.mutate(item.id)}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Done items */}
+          {done.length > 0 && (
+            <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60 opacity-70">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/40">
+                Done · {done.length}
+              </p>
+              <ul className="space-y-2">
+                {done.map((item) => (
+                  <InspoItem
+                    key={item.id}
+                    item={item}
+                    memberEmoji={memberEmoji}
+                    memberName={memberName}
+                    onToggle={() => toggleDone.mutate({ id: item.id, isDone: !item.is_done })}
+                    onDelete={() => deleteItem.mutate(item.id)}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </PageContainer>
+  )
+}
+
+// ─── Sub-component: a single Inspo card ─────────────────────────────────────
+
+interface InspoItemProps {
+  item: {
+    id: string
+    title: string
+    note: string | null
+    url: string | null
+    is_done: boolean
+    created_by: string | null
+  }
+  memberEmoji: (id: string | null) => string
+  memberName: (id: string | null) => string
+  onToggle: () => void
+  onDelete: () => void
+}
+
+function InspoItem({ item, memberEmoji, memberName, onToggle, onDelete }: InspoItemProps) {
+  return (
+    <li className="pressable flex items-start gap-3 rounded-[22px] bg-cream/70 px-4 py-3 ring-1 ring-latte/40 transition-colors hover:bg-cream">
+      {/* Done toggle */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={item.is_done ? 'Mark undone' : 'Mark done'}
+        className={cn(
+          'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition-colors',
+          item.is_done
+            ? 'border-emerald bg-emerald text-white'
+            : 'border-latte hover:border-emerald'
+        )}
+      >
+        {item.is_done && <Check className="h-3 w-3" />}
+      </button>
+
+      {/* Content */}
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            'font-medium text-espresso leading-snug',
+            item.is_done && 'line-through text-espresso/40'
+          )}
+        >
+          {item.title}
+        </p>
+        {item.note && (
+          <p className="mt-0.5 text-sm text-espresso/55">{item.note}</p>
+        )}
+        <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-espresso/40">
+          <span>
+            {memberEmoji(item.created_by)} {memberName(item.created_by)}
+          </span>
+          {item.url && (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-emerald hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" /> link
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Delete */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 shrink-0 text-terracotta hover:bg-terracotta/10"
+        onClick={onDelete}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
+    </li>
   )
 }

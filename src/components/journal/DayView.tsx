@@ -44,17 +44,23 @@ export function DayView({ date }: DayViewProps) {
   }
 
   if (isLoading) {
-    return <LoadingState message="Loading entries..." />
+    return (
+      <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+        <LoadingState message="Loading entries..." />
+      </div>
+    )
   }
 
   if (!entries || entries.length === 0) {
     return (
-      <EmptyState
-        icon={<BookOpen className="h-8 w-8" />}
-        title="No meals logged"
-        description="Log your first meal for this day"
-        action={{ label: 'Log Meal', onClick: openLogMealModal }}
-      />
+      <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+        <EmptyState
+          icon={<BookOpen className="h-8 w-8" />}
+          title="No meals logged"
+          description="Log your first meal for this day"
+          action={{ label: 'Log meal', onClick: openLogMealModal }}
+        />
+      </div>
     )
   }
 
@@ -63,6 +69,7 @@ export function DayView({ date }: DayViewProps) {
 
   return (
     <div className="space-y-6">
+      {/* Hero bento summary */}
       <DailySummary
         calories={totals.calories}
         protein={totals.protein}
@@ -71,23 +78,31 @@ export function DayView({ date }: DayViewProps) {
         mealCount={entries.length}
       />
 
-      <div className="space-y-6">
+      {/* Meal-type sections — stagger cascade */}
+      <div className="stagger space-y-5">
         {MEAL_TYPES.map((mealType) => {
           const mealEntries = grouped[mealType.value]
           if (!mealEntries || mealEntries.length === 0) return null
 
           return (
-            <div key={mealType.value}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">{mealType.emoji}</span>
-                <h3 className="font-heading font-semibold text-espresso">
-                  {mealType.label}
-                </h3>
-                <span className="text-xs text-espresso/50">
-                  ({mealEntries.length})
+            <div key={mealType.value} className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+              {/* Section header */}
+              <div className="mb-3 flex items-center gap-2.5">
+                <span className="grid h-9 w-9 place-items-center rounded-[14px] bg-gradient-to-br from-emerald/[0.12] to-emerald/[0.04] text-lg ring-1 ring-emerald/15">
+                  {mealType.emoji}
+                </span>
+                <div className="flex-1">
+                  <h3 className="font-display text-lg font-semibold leading-none text-espresso">
+                    {mealType.label}
+                  </h3>
+                </div>
+                <span className="metric rounded-full bg-cream px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-espresso/45 ring-1 ring-latte/60">
+                  {mealEntries.length}
                 </span>
               </div>
-              <div className="space-y-2">
+
+              {/* Meal cards */}
+              <div className="space-y-2.5">
                 {mealEntries.map((entry) => (
                   <MealCard
                     key={entry.id}
