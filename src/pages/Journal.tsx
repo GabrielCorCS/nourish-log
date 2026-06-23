@@ -3,7 +3,6 @@ import { Plus } from 'lucide-react'
 import { PageContainer } from '@/components/layout'
 import { Button } from '@/components/ui'
 import { CalendarStrip, DayView } from '@/components/journal'
-import { LogMealModal } from '@/components/logging'
 import { PersonToggle } from '@/components/shared'
 import { useUIStore } from '@/stores'
 import { formatDate } from '@/lib/dates'
@@ -45,8 +44,6 @@ export function Journal() {
 
       {/* Day content */}
       <DayView date={selectedDate} />
-
-      <LogMealModal />
     </PageContainer>
   )
 }

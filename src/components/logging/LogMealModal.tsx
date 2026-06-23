@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Check } from 'lucide-react'
 import {
   Dialog,
@@ -75,33 +75,36 @@ export function LogMealModal() {
     reset()
   }
 
-  const handleDetected = async (barcode: string) => {
-    if (handlingRef.current) return
-    handlingRef.current = true
-    setScanStatus('reading')
-    try {
-      const product = await getProductByBarcode(barcode)
-      if (product) {
-        setScanStatus('found')
-        setScannedProduct(product)
-        setStep('scan-confirm')
-      } else {
+  const handleDetected = useCallback(
+    async (barcode: string) => {
+      if (handlingRef.current) return
+      handlingRef.current = true
+      setScanStatus('reading')
+      try {
+        const product = await getProductByBarcode(barcode)
+        if (product) {
+          setScanStatus('found')
+          setScannedProduct(product)
+          setStep('scan-confirm')
+        } else {
+          setScanStatus('error')
+          addToast('No product found for that barcode', 'error')
+          window.setTimeout(() => {
+            setScanStatus('searching')
+            handlingRef.current = false
+          }, 1400)
+        }
+      } catch {
         setScanStatus('error')
-        addToast('No product found for that barcode', 'error')
+        addToast('Lookup failed — try again', 'error')
         window.setTimeout(() => {
           setScanStatus('searching')
           handlingRef.current = false
         }, 1400)
       }
-    } catch {
-      setScanStatus('error')
-      addToast('Lookup failed — try again', 'error')
-      window.setTimeout(() => {
-        setScanStatus('searching')
-        handlingRef.current = false
-      }, 1400)
-    }
-  }
+    },
+    [addToast, setScannedProduct, setStep]
+  )
 
   const handleBack = () => {
     switch (step) {

@@ -10,7 +10,6 @@ import {
   PartnerSummary,
   QuickAdd,
 } from '@/components/dashboard'
-import { LogMealModal } from '@/components/logging'
 import { useUIStore, useViewStore } from '@/stores'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDate } from '@/lib/dates'
@@ -76,8 +75,6 @@ export function Dashboard() {
           <MealTimeline />
         </div>
       </div>
-
-      <LogMealModal />
     </PageContainer>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser'
+import { BARCODE_HINTS, createBarcodeConfirmer } from '@/lib/barcode'
 import {
   Dialog,
   DialogContent,
@@ -28,11 +29,13 @@ export function BarcodeScanner({
 
     let cancelled = false
     setError(null)
-    const reader = new BrowserMultiFormatReader()
+    const reader = new BrowserMultiFormatReader(BARCODE_HINTS)
+    const confirm = createBarcodeConfirmer()
 
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
-        if (result && !cancelled) {
+        // Two consecutive identical reads guards against single-frame misreads.
+        if (result && !cancelled && confirm(result.getText())) {
           onDetected(result.getText())
         }
       })
@@ -98,11 +101,11 @@ export function BarcodeScanner({
                 />
                 {/* Viewfinder guide */}
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div className="h-28 w-3/4 rounded-[16px] border-2 border-lime/70 shadow-[0_0_20px_rgba(132,204,22,0.25)]" />
+                  <div className="h-3/5 w-3/4 rounded-[16px] border-2 border-lime/70 shadow-[0_0_20px_rgba(132,204,22,0.25)]" />
                 </div>
               </div>
               <p className="text-center text-sm font-medium text-espresso/60">
-                Point your camera at a product barcode
+                Point your camera at a product barcode — horizontal or vertical both work
               </p>
             </>
           )}
