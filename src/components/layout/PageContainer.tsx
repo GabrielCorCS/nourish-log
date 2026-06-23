@@ -17,7 +17,7 @@ export function PageContainer({
   className,
 }: PageContainerProps) {
   return (
-    <div className={cn('min-h-screen pb-20 lg:pb-8', className)}>
+    <div className={cn(className)}>
       {(title || action) && (
         <div className="mb-6">
           <div className="flex items-start justify-between gap-4">

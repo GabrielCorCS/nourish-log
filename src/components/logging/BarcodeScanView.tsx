@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser'
-import { DecodeHintType, BarcodeFormat } from '@zxing/library'
+import { BARCODE_HINTS, createBarcodeConfirmer } from '@/lib/barcode'
 
 export type ScanStatus = 'searching' | 'reading' | 'found' | 'error'
 
@@ -9,23 +9,6 @@ interface BarcodeScanViewProps {
   // Drives the guide-frame colour (red → amber → green). Controlled by parent.
   status?: ScanStatus
 }
-
-// Most grocery codes are UPC/EAN; broaden formats + try harder for tough labels.
-const HINTS = new Map<DecodeHintType, unknown>([
-  [
-    DecodeHintType.POSSIBLE_FORMATS,
-    [
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.ITF,
-    ],
-  ],
-  [DecodeHintType.TRY_HARDER, true],
-])
 
 const FRAME: Record<ScanStatus, { border: string; glow: string; dot: string; text: string }> = {
   searching: {
@@ -63,11 +46,16 @@ export function BarcodeScanView({ onDetected, status = 'searching' }: BarcodeSca
   useEffect(() => {
     let cancelled = false
     setCameraError(null)
-    const reader = new BrowserMultiFormatReader(HINTS)
+    const reader = new BrowserMultiFormatReader(BARCODE_HINTS)
+    const confirm = createBarcodeConfirmer()
 
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
-        if (result && !cancelled) onDetected(result.getText())
+        // Require two consecutive identical reads so a single misdecode (common
+        // on curved/glossy packaging) can't log the wrong product.
+        if (result && !cancelled && confirm(result.getText())) {
+          onDetected(result.getText())
+        }
       })
       .then((controls) => {
         if (cancelled) {
@@ -116,7 +104,7 @@ export function BarcodeScanView({ onDetected, status = 'searching' }: BarcodeSca
         {/* Guide frame — colour changes with status */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div
-            className={`relative h-[38%] w-[82%] rounded-[18px] border-2 ${f.border} ${f.glow} transition-colors duration-300`}
+            className={`relative h-[60%] w-[78%] rounded-[18px] border-2 ${f.border} ${f.glow} transition-colors duration-300`}
           >
             {/* Corner accents */}
             {['left-0 top-0 border-l-4 border-t-4 rounded-tl-[18px]',
@@ -139,7 +127,7 @@ export function BarcodeScanView({ onDetected, status = 'searching' }: BarcodeSca
         </div>
       </div>
       <p className="text-center text-sm font-medium text-espresso/55">
-        Any barcode on the package works — UPC, EAN, and more.
+        Hold it horizontally or vertically — just keep the barcode in the box.
       </p>
     </div>
   )

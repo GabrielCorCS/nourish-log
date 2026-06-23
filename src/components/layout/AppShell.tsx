@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
+import { LogMealModal } from '@/components/logging'
 
 interface AppShellProps {
   children: ReactNode
@@ -38,6 +39,9 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Mobile Bottom Nav */}
       <BottomNav />
+
+      {/* Global log flow — mounted once so the Log button works on every page */}
+      <LogMealModal />
     </div>
   )
 }

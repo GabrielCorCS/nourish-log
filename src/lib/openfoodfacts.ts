@@ -220,11 +220,15 @@ export function getOffServing(p: OffProduct): OffServingInfo {
   // Prefer explicit per-serving nutriments; else scale per-100 by the amount.
   let perServing: OffMacros | null = null
   if (num(n['energy-kcal_serving']) > 0) {
+    // Some records give per-serving calories but leave individual macros blank.
+    // Fall back to the per-100 value scaled by the serving size so we don't
+    // report 0 g of protein/carbs/fat for a real food.
+    const f = amount ? amount / 100 : null
     perServing = {
       calories: num(n['energy-kcal_serving']),
-      protein: num(n.proteins_serving),
-      carbs: num(n.carbohydrates_serving),
-      fat: num(n.fat_serving),
+      protein: num(n.proteins_serving) || (f ? per100.protein * f : 0),
+      carbs: num(n.carbohydrates_serving) || (f ? per100.carbs * f : 0),
+      fat: num(n.fat_serving) || (f ? per100.fat * f : 0),
     }
   } else if (amount) {
     const f = amount / 100
