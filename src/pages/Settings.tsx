@@ -12,6 +12,7 @@ import {
 } from '@/hooks/useHouseholdActions'
 import { useAuth } from '@/contexts/AuthContext'
 import { useUIStore } from '@/stores'
+import { AVATAR_EMOJIS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 // ─── Section header ──────────────────────────────────────────────────────────
@@ -161,21 +162,10 @@ export function Settings() {
         <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
           <SectionHeader icon={<User className="h-4 w-4" />} label="Your profile" />
 
-          <div className="flex items-end gap-4">
-            {/* Avatar preview + emoji input */}
-            <div className="flex flex-col items-center gap-2">
-              <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-sage/25 to-emerald/10 text-3xl ring-1 ring-emerald/15">
-                {profileForm.avatar_emoji || '👤'}
-              </div>
-              <Input
-                aria-label="Avatar emoji"
-                value={profileForm.avatar_emoji}
-                onChange={(e) =>
-                  setProfileForm({ ...profileForm, avatar_emoji: e.target.value.slice(0, 2) })
-                }
-                className="w-16 text-center"
-                maxLength={2}
-              />
+          <div className="flex items-center gap-4">
+            {/* Avatar preview */}
+            <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-sage/25 to-emerald/10 text-3xl ring-1 ring-emerald/15">
+              {profileForm.avatar_emoji || '👤'}
             </div>
             <div className="flex-1">
               <Input
@@ -184,6 +174,32 @@ export function Settings() {
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                 placeholder="Your name"
               />
+            </div>
+          </div>
+
+          {/* Avatar picker */}
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-espresso/55">
+              Pick an avatar
+            </p>
+            <div className="grid grid-cols-8 gap-1.5">
+              {AVATAR_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  aria-label={`Choose ${emoji} avatar`}
+                  aria-pressed={profileForm.avatar_emoji === emoji}
+                  onClick={() => setProfileForm({ ...profileForm, avatar_emoji: emoji })}
+                  className={cn(
+                    'pressable flex aspect-square items-center justify-center rounded-xl text-2xl ring-1 transition-all',
+                    profileForm.avatar_emoji === emoji
+                      ? 'scale-105 bg-emerald/15 ring-emerald/40'
+                      : 'bg-cream ring-latte/50 hover:bg-latte/30'
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
             </div>
           </div>
 

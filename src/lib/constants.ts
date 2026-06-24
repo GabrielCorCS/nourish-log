@@ -24,6 +24,15 @@ export const MEAL_TYPES: { value: MealType; label: string; emoji: string; timeRa
   { value: 'snack', label: 'Snack', emoji: '🍿', timeRange: 'Anytime' },
 ]
 
+// Whimsical profile-picture choices. Dinosaurs lead (Kaylin's request), then a
+// spread of cute critters and characters.
+export const AVATAR_EMOJIS = [
+  '🦕', '🦖', '🐉', '🐲', '🦊', '🐱', '🐶', '🐼',
+  '🐨', '🐸', '🐵', '🐰', '🐯', '🦁', '🐮', '🐷',
+  '🐹', '🐻', '🐧', '🐤', '🦉', '🦄', '🐙', '🦋',
+  '🐢', '🐝', '🐬', '🦔', '🦦', '🦥', '🦩', '🐳',
+]
+
 export const SERVING_UNITS = [
   'g',
   'oz',

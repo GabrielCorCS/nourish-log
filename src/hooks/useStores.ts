@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useHouseholdId } from '@/hooks/useHousehold'
 
 export interface Store {
   id: string
@@ -46,14 +47,19 @@ export function useStores() {
 export function useCreateStore() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const householdId = useHouseholdId()
 
   return useMutation({
     mutationFn: async (store: StoreInsert) => {
       if (!user) throw new Error('Not authenticated')
+      // Stores are a shared household resource — RLS requires household_id on
+      // both insert (WITH CHECK) and read, so a store created without it would
+      // be rejected/invisible.
+      if (!householdId) throw new Error('No household found for the current user')
 
       const { data, error } = await supabase
         .from('stores')
-        .insert({ ...store, user_id: user.id })
+        .insert({ ...store, user_id: user.id, household_id: householdId })
         .select()
         .single()
 
