@@ -77,7 +77,7 @@ export function Inventory() {
             Inventory
           </h1>
         </div>
-        <Button onClick={() => setIsAddOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+        <Button variant="accent" onClick={() => setIsAddOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
           Add Item
         </Button>
       </div>

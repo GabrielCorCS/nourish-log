@@ -57,7 +57,7 @@ export function Inspo() {
       title="Inspo"
       description="A shared board for things you're craving"
       action={
-        <Button onClick={() => setAdding((v) => !v)} leftIcon={<Plus className="h-4 w-4" />}>
+        <Button variant="accent" onClick={() => setAdding((v) => !v)} leftIcon={<Plus className="h-4 w-4" />}>
           Add
         </Button>
       }

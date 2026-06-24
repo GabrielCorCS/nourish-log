@@ -26,6 +26,7 @@ export function Journal() {
           </h1>
         </div>
         <Button
+          variant="accent"
           onClick={openLogMealModal}
           leftIcon={<Plus className="h-4 w-4" />}
           className="hidden shrink-0 sm:inline-flex"

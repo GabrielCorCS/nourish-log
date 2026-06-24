@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
@@ -33,7 +33,15 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main Content — re-keyed per route to replay the enter animation */}
       <main className="lg:ml-64 px-4 lg:px-8 py-4 lg:py-8 pb-24 lg:pb-8">
         <div key={location.pathname} className="page-enter mx-auto w-full max-w-5xl">
-          {children}
+          <Suspense
+            fallback={
+              <div className="flex min-h-[40vh] items-center justify-center">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-latte border-t-emerald" />
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
         </div>
       </main>
 

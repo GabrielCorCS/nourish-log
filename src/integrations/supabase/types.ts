@@ -948,6 +948,10 @@ export type Database = {
         | "nuts"
         | "condiments"
         | "beverages"
+        | "takeout"
+        | "baked"
+        | "packaged"
+        | "sweets"
       meal_type: "breakfast" | "lunch" | "dinner" | "snack"
     }
     CompositeTypes: {
@@ -1095,6 +1099,10 @@ export const Constants = {
         "nuts",
         "condiments",
         "beverages",
+        "takeout",
+        "baked",
+        "packaged",
+        "sweets",
       ],
       meal_type: ["breakfast", "lunch", "dinner", "snack"],
     },

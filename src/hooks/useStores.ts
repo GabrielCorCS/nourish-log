@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
@@ -84,6 +85,32 @@ export function useUpdateStore() {
       queryClient.invalidateQueries({ queryKey: STORES_KEY })
     },
   })
+}
+
+/**
+ * Returns an async resolver that turns a free-typed store name into a store id,
+ * creating the store on the fly if it doesn't exist yet (case-insensitive match).
+ * Lets forms accept any store by typing instead of only picking from a dropdown.
+ */
+export function useFindOrCreateStore() {
+  const { data: stores } = useStores()
+  const createStore = useCreateStore()
+
+  return useCallback(
+    async (rawName: string): Promise<string | null> => {
+      const name = rawName.trim()
+      if (!name) return null
+
+      const existing = stores?.find(
+        (s) => s.name.toLowerCase() === name.toLowerCase()
+      )
+      if (existing) return existing.id
+
+      const created = await createStore.mutateAsync({ name })
+      return created.id
+    },
+    [stores, createStore]
+  )
 }
 
 export function useDeleteStore() {
