@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './Button'
@@ -97,7 +98,11 @@ export function DialogContent({ children, className, size = 'md' }: DialogConten
     full: 'max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]',
   }
 
-  return (
+  // Render through a portal to <body> so the overlay is positioned relative to
+  // the viewport. Without this, a transformed ancestor (e.g. the .page-enter
+  // wrapper's animation fill) becomes the containing block for `position: fixed`,
+  // which pushes the dialog off-screen ("blank") on long pages.
+  return createPortal(
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
@@ -125,7 +130,8 @@ export function DialogContent({ children, className, size = 'md' }: DialogConten
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

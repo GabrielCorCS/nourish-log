@@ -1,4 +1,4 @@
-import { Settings, LogOut, UserPlus } from 'lucide-react'
+import { Settings, LogOut } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 export function Header({ title }: HeaderProps) {
-  const { profile, isAdmin, signOut } = useAuth()
+  const { profile, signOut } = useAuth()
 
   return (
     <header className="lg:hidden sticky top-0 z-30 bg-cream/80 backdrop-blur-lg border-b border-latte/70 pt-[env(safe-area-inset-top)]">
@@ -25,13 +25,6 @@ export function Header({ title }: HeaderProps) {
           <div className="h-8 w-8 rounded-full bg-sage/20 ring-1 ring-latte flex items-center justify-center text-lg">
             {profile?.avatar_emoji || '👤'}
           </div>
-          {isAdmin && (
-            <Link to="/invitations">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <UserPlus className="h-5 w-5" />
-              </Button>
-            </Link>
-          )}
           <Link to="/settings">
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <Settings className="h-5 w-5" />

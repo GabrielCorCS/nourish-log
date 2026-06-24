@@ -212,7 +212,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
               />
             </div>
 
-            <div className="border-t border-latte pt-4">
+            <div className="rounded-[18px] bg-cream/70 p-4 ring-1 ring-latte/50">
               <p className="mb-3 text-xs font-bold uppercase tracking-wide text-espresso/55">
                 Nutrition per serving
               </p>
