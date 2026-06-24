@@ -1,5 +1,5 @@
-import { Plus, Minus, X } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { X } from 'lucide-react'
+import { Button, StepperField } from '@/components/ui'
 import { IngredientSearch } from '@/components/ingredients/IngredientSearch'
 import { useLogMealStore } from '@/stores'
 import { cn } from '@/lib/utils'
@@ -58,11 +58,6 @@ export function IngredientSelector() {
                     : Math.max(1, Math.round(servings * servingGramsOf(ingredient)))
                 updateIngredient(ingredient.id, { unit: next, amount: nextAmount })
               }
-
-              const setAmount = (next: number) =>
-                updateIngredient(ingredient.id, {
-                  amount: Math.max(step, Math.round(next * 100) / 100),
-                })
 
               return (
                 <li
@@ -126,28 +121,17 @@ export function IngredientSelector() {
                       <span className="text-xs text-espresso/40">per serving</span>
                     )}
 
-                    {/* Stepper */}
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => setAmount(amount - step)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="metric min-w-[3.5rem] text-center text-sm font-semibold text-espresso">
-                        {amount}{unit !== 'serving' ? ` ${unit}` : ''}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => setAmount(amount + step)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
+                    {/* Stepper — typeable for exact amounts */}
+                    <StepperField
+                      value={amount}
+                      step={step}
+                      min={unit === 'serving' ? 0.1 : 1}
+                      suffix={unit !== 'serving' ? unit : undefined}
+                      onChange={(v) =>
+                        updateIngredient(ingredient.id, { amount: v })
+                      }
+                      ariaLabel={`Amount of ${ingredient.name}`}
+                    />
                   </div>
                 </li>
               )

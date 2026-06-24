@@ -8,9 +8,15 @@ import {
   DialogFooter,
   Button,
   Input,
+  NumberField,
   Select,
 } from '@/components/ui'
-import { useIngredients, useStores, useCreateGroceryPurchase } from '@/hooks'
+import {
+  useIngredients,
+  useStores,
+  useCreateGroceryPurchase,
+  useFindOrCreateStore,
+} from '@/hooks'
 import { useUIStore } from '@/stores'
 import { SERVING_UNITS } from '@/lib/constants'
 
@@ -24,16 +30,18 @@ export function PurchaseForm({ ingredientId, onClose }: PurchaseFormProps) {
   const { data: ingredients } = useIngredients()
   const { data: stores } = useStores()
   const createPurchase = useCreateGroceryPurchase()
+  const findOrCreateStore = useFindOrCreateStore()
 
   const [formData, setFormData] = useState({
     ingredient_id: ingredientId || '',
-    store_id: '',
     quantity: 1,
     unit: 'g',
     price: 0,
     purchased_at: new Date().toISOString().split('T')[0],
     notes: '',
   })
+  // Free-typed store name; resolved to a store id (find-or-create) on submit.
+  const [storeName, setStoreName] = useState('')
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -66,9 +74,10 @@ export function PurchaseForm({ ingredientId, onClose }: PurchaseFormProps) {
     if (!validate()) return
 
     try {
+      const store_id = await findOrCreateStore(storeName)
       await createPurchase.mutateAsync({
         ingredient_id: formData.ingredient_id || null,
-        store_id: formData.store_id || null,
+        store_id,
         quantity: formData.quantity,
         unit: formData.unit,
         price: formData.price,
@@ -109,35 +118,28 @@ export function PurchaseForm({ ingredientId, onClose }: PurchaseFormProps) {
               }
             />
 
-            <Select
-              label="Store"
-              value={formData.store_id}
-              onChange={(e) =>
-                setFormData({ ...formData, store_id: e.target.value })
-              }
-              placeholder="Select store (optional)..."
-              options={
-                stores?.map((s) => ({
-                  value: s.id,
-                  label: `${s.emoji || '🏪'} ${s.name}`,
-                })) || []
-              }
-            />
+            <div>
+              <Input
+                label="Store (optional)"
+                list="purchase-store-options"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                placeholder="Type or pick a store"
+              />
+              <datalist id="purchase-store-options">
+                {stores?.map((s) => (
+                  <option key={s.id} value={s.name} />
+                ))}
+              </datalist>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Input
+              <NumberField
                 label="Quantity"
-                type="number"
                 value={formData.quantity}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    quantity: Number(e.target.value),
-                  })
-                }
+                onChange={(v) => setFormData({ ...formData, quantity: v })}
                 error={errors.quantity}
                 min={0}
-                step={0.1}
               />
               <Select
                 label="Unit"
@@ -150,19 +152,12 @@ export function PurchaseForm({ ingredientId, onClose }: PurchaseFormProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Input
+              <NumberField
                 label="Price ($)"
-                type="number"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    price: Number(e.target.value),
-                  })
-                }
+                onChange={(v) => setFormData({ ...formData, price: v })}
                 error={errors.price}
                 min={0}
-                step={0.01}
               />
               <Input
                 label="Purchase Date"

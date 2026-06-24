@@ -28,6 +28,7 @@ export function Recipes() {
           </h1>
         </div>
         <Button
+          variant="accent"
           onClick={() => navigate('/recipes/new')}
           leftIcon={<Plus className="h-4 w-4" />}
           className="shrink-0"

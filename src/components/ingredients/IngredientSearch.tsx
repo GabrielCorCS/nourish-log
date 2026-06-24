@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Search, Plus, ScanLine, Loader2, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Input, Button, Select } from '@/components/ui'
+import { Input, Button, NumberField, Select } from '@/components/ui'
 import { useSearchIngredients, useCreateIngredient } from '@/hooks'
 import { useUIStore } from '@/stores'
+import { cn } from '@/lib/utils'
 import { INGREDIENT_CATEGORIES, SERVING_UNITS } from '@/lib/constants'
 import {
   searchProducts,
@@ -13,7 +14,12 @@ import {
   type IngredientDraft,
 } from '@/lib/openfoodfacts'
 import type { Ingredient, IngredientCategory } from '@/types/database'
-import { BarcodeScanner } from './BarcodeScanner'
+
+// Lazily loaded so the heavy @zxing/browser barcode bundle only downloads when
+// the user actually opens the scanner.
+const BarcodeScanner = lazy(() =>
+  import('./BarcodeScanner').then((m) => ({ default: m.BarcodeScanner }))
+)
 
 interface IngredientSearchProps {
   onSelect: (ingredient: Ingredient) => void
@@ -39,12 +45,14 @@ const emptyDraft: IngredientDraft = {
   off_id: null,
 }
 
-// Open Food Facts text search, debounced + cached via react-query.
-function useOffSearch(search: string) {
+// Open Food Facts text search, debounced + cached via react-query. Only runs
+// when the "Discover" tab is active so external results never load (or get
+// clicked) unless the user deliberately asks for them.
+function useOffSearch(search: string, enabled: boolean) {
   return useQuery({
     queryKey: ['off-search', search],
     queryFn: () => searchProducts(search),
-    enabled: search.trim().length >= 2,
+    enabled: enabled && search.trim().length >= 2,
     staleTime: 5 * 60 * 1000,
   })
 }
@@ -62,6 +70,9 @@ export function IngredientSearch({
   const [scannerOpen, setScannerOpen] = useState(false)
   const [lookingUpBarcode, setLookingUpBarcode] = useState(false)
   const [draft, setDraft] = useState<IngredientDraft | null>(null)
+  // Which result source is shown. Defaults to the user's own library so the
+  // external suggestions are never an accidental tap away.
+  const [resultTab, setResultTab] = useState<'library' | 'discover'>('library')
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 350)
@@ -69,7 +80,16 @@ export function IngredientSearch({
   }, [search])
 
   const { data: libraryResults } = useSearchIngredients(search)
-  const { data: offResults, isFetching: offFetching } = useOffSearch(debounced)
+  const { data: offResults, isFetching: offFetching } = useOffSearch(
+    debounced,
+    resultTab === 'discover'
+  )
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    // A fresh query always lands on the library tab.
+    setResultTab('library')
+  }
 
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds])
 
@@ -153,7 +173,7 @@ export function IngredientSearch({
           <Input
             placeholder={placeholder}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
             rightIcon={
               offFetching ? (
@@ -176,12 +196,41 @@ export function IngredientSearch({
 
       {showResults && (
         <div className="space-y-3">
+          {/* Source tabs — keep your own library separate from external
+              suggestions so curated items are only shown on request. */}
+          <div className="flex gap-1 rounded-full bg-cream p-1 ring-1 ring-latte/50">
+            <button
+              type="button"
+              onClick={() => setResultTab('library')}
+              className={cn(
+                'flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
+                resultTab === 'library'
+                  ? 'bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60'
+                  : 'text-espresso/55 hover:text-espresso'
+              )}
+            >
+              Your library{hasLibrary ? ` · ${visibleLibrary.length}` : ''}
+            </button>
+            <button
+              type="button"
+              onClick={() => setResultTab('discover')}
+              className={cn(
+                'inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
+                resultTab === 'discover'
+                  ? 'bg-warm-white text-espresso shadow-soft ring-1 ring-latte/60'
+                  : 'text-espresso/55 hover:text-espresso'
+              )}
+            >
+              Discover
+              {offFetching && (
+                <Loader2 className="h-3 w-3 animate-spin text-emerald" />
+              )}
+            </button>
+          </div>
+
           {/* Library results */}
-          <div>
-            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-espresso/55">
-              Your library
-            </p>
-            {hasLibrary ? (
+          {resultTab === 'library' &&
+            (hasLibrary ? (
               <div className="overflow-hidden rounded-[22px] bg-warm-white ring-1 ring-latte/60">
                 {visibleLibrary.map((ingredient, idx) => (
                   <button
@@ -215,71 +264,79 @@ export function IngredientSearch({
                 ))}
               </div>
             ) : (
-              <p className="px-1 text-sm text-espresso/40">
-                No matches in your library
+              <p className="px-1 py-3 text-sm text-espresso/40">
+                No matches in your library. Check{' '}
+                <span className="font-medium text-espresso/60">Discover</span> or
+                add it manually below.
               </p>
-            )}
-          </div>
+            ))}
 
-          {/* Open Food Facts results */}
-          {(hasOff || offFetching) && (
+          {/* Open Food Facts results — only when explicitly opened */}
+          {resultTab === 'discover' && (
             <div>
-              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-espresso/55">
-                Open Food Facts
+              <p className="mb-1.5 px-1 text-xs text-espresso/45">
+                Suggestions from Open Food Facts. Tapping one adds it to your
+                library.
               </p>
               <div className="overflow-hidden rounded-[22px] bg-warm-white ring-1 ring-latte/60">
-                {hasOff
-                  ? visibleOff.map((product, idx) => (
-                      <button
-                        key={product.code}
-                        type="button"
-                        onClick={() => handleSelectOff(product)}
-                        disabled={createIngredient.isPending}
-                        className={[
-                          'pressable flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream disabled:opacity-50',
-                          idx > 0 ? 'border-t border-latte/40' : '',
-                        ].join(' ')}
-                      >
-                        {product.image_small_url ? (
-                          <img
-                            src={product.image_small_url}
-                            alt=""
-                            className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-latte/40"
-                          />
-                        ) : (
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-xl ring-1 ring-latte/50">
-                            🛒
-                          </span>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-semibold text-espresso">
-                            {product.product_name}
-                            {product.brands && (
-                              <span className="font-normal text-espresso/50">
-                                {' '}· {product.brands}
-                              </span>
-                            )}
-                          </p>
-                          <p className="metric text-xs text-espresso/50">
-                            {Math.round(
-                              product.nutriments?.['energy-kcal_100g'] ?? 0
-                            )}{' '}
-                            cal / 100g
-                          </p>
-                        </div>
-                        <Plus className="h-4 w-4 shrink-0 text-emerald" />
-                      </button>
-                    ))
-                  : (
-                      <p className="px-4 py-3 text-sm text-espresso/40">
-                        Searching Open Food Facts…
-                      </p>
-                    )}
+                {hasOff ? (
+                  visibleOff.map((product, idx) => (
+                    <button
+                      key={product.code}
+                      type="button"
+                      onClick={() => handleSelectOff(product)}
+                      disabled={createIngredient.isPending}
+                      className={[
+                        'pressable flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream disabled:opacity-50',
+                        idx > 0 ? 'border-t border-latte/40' : '',
+                      ].join(' ')}
+                    >
+                      {product.image_small_url ? (
+                        <img
+                          src={product.image_small_url}
+                          alt=""
+                          width={36}
+                          height={36}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-latte/40"
+                        />
+                      ) : (
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-xl ring-1 ring-latte/50">
+                          🛒
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-espresso">
+                          {product.product_name}
+                          {product.brands && (
+                            <span className="font-normal text-espresso/50">
+                              {' '}· {product.brands}
+                            </span>
+                          )}
+                        </p>
+                        <p className="metric text-xs text-espresso/50">
+                          {Math.round(
+                            product.nutriments?.['energy-kcal_100g'] ?? 0
+                          )}{' '}
+                          cal / 100g
+                        </p>
+                      </div>
+                      <Plus className="h-4 w-4 shrink-0 text-emerald" />
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-4 py-3 text-sm text-espresso/40">
+                    {offFetching
+                      ? 'Searching Open Food Facts…'
+                      : 'No suggestions found.'}
+                  </p>
+                )}
               </div>
             </div>
           )}
 
-          {/* Add manually */}
+          {/* Add manually — available from either tab */}
           <Button
             type="button"
             variant="ghost"
@@ -292,11 +349,15 @@ export function IngredientSearch({
         </div>
       )}
 
-      <BarcodeScanner
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onDetected={handleBarcodeDetected}
-      />
+      {scannerOpen && (
+        <Suspense fallback={null}>
+          <BarcodeScanner
+            open
+            onClose={() => setScannerOpen(false)}
+            onDetected={handleBarcodeDetected}
+          />
+        </Suspense>
+      )}
 
       {draft && (
         <AddIngredientInline
@@ -378,6 +439,10 @@ function AddIngredientInline({
           <img
             src={form.image_url}
             alt=""
+            width={64}
+            height={64}
+            loading="lazy"
+            decoding="async"
             className="h-16 w-16 rounded-xl object-cover ring-1 ring-latte/50"
           />
         )}
@@ -410,13 +475,11 @@ function AddIngredientInline({
         />
 
         <div className="grid grid-cols-3 gap-3">
-          <Input
+          <NumberField
             label="Serving"
-            type="number"
-            value={form.serving_size}
-            onChange={(e) => set('serving_size', Number(e.target.value))}
+            value={form.serving_size ?? 0}
+            onChange={(v) => set('serving_size', v)}
             min={0}
-            step={0.1}
           />
           <Select
             label="Unit"
@@ -424,18 +487,11 @@ function AddIngredientInline({
             onChange={(e) => set('serving_unit', e.target.value)}
             options={SERVING_UNITS.map((u) => ({ value: u, label: u }))}
           />
-          <Input
+          <NumberField
             label="g / serving"
-            type="number"
-            value={form.serving_grams ?? ''}
-            onChange={(e) =>
-              set(
-                'serving_grams',
-                e.target.value === '' ? null : Number(e.target.value)
-              )
-            }
+            value={form.serving_grams ?? 0}
+            onChange={(v) => set('serving_grams', v === 0 ? null : v)}
             min={0}
-            step={0.1}
             hint="for g/ml entry"
           />
         </div>
@@ -445,36 +501,29 @@ function AddIngredientInline({
             Nutrition per serving
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <Input
+            <NumberField
               label="Calories"
-              type="number"
-              value={form.calories}
-              onChange={(e) => set('calories', Number(e.target.value))}
+              value={form.calories ?? 0}
+              onChange={(v) => set('calories', v)}
               min={0}
             />
-            <Input
+            <NumberField
               label="Protein (g)"
-              type="number"
-              value={form.protein}
-              onChange={(e) => set('protein', Number(e.target.value))}
+              value={form.protein ?? 0}
+              onChange={(v) => set('protein', v)}
               min={0}
-              step={0.1}
             />
-            <Input
+            <NumberField
               label="Carbs (g)"
-              type="number"
-              value={form.carbs}
-              onChange={(e) => set('carbs', Number(e.target.value))}
+              value={form.carbs ?? 0}
+              onChange={(v) => set('carbs', v)}
               min={0}
-              step={0.1}
             />
-            <Input
+            <NumberField
               label="Fat (g)"
-              type="number"
-              value={form.fat}
-              onChange={(e) => set('fat', Number(e.target.value))}
+              value={form.fat ?? 0}
+              onChange={(v) => set('fat', v)}
               min={0}
-              step={0.1}
             />
           </div>
         </div>

@@ -59,7 +59,7 @@ export function IngredientList() {
             leftIcon={<Search className="h-4 w-4" />}
           />
         </div>
-        <Button onClick={() => setIsFormOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+        <Button variant="accent" onClick={() => setIsFormOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
           Add
         </Button>
       </div>

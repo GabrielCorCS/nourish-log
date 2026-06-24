@@ -9,6 +9,8 @@ export {
   type CardProps,
 } from './Card'
 export { Input, Textarea, type InputProps, type TextareaProps } from './Input'
+export { NumberField, type NumberFieldProps } from './NumberField'
+export { StepperField, type StepperFieldProps } from './StepperField'
 export {
   Dialog,
   DialogTrigger,

@@ -164,6 +164,105 @@ export function useUpdateFoodEntry() {
   })
 }
 
+interface UpdateEntryWithIngredientsInput {
+  entryId: string
+  meal_type: FoodEntry['meal_type']
+  notes: string | null
+  servings: number
+  totals: { calories: number; protein: number; carbs: number; fat: number }
+  // Desired ingredient rows. Rows with an `id` already exist (update); rows
+  // without one are newly added (insert).
+  upserts: {
+    id?: string
+    ingredient_id: string
+    amount: number
+    unit: string
+    quantity: number
+  }[]
+  // Existing food_entry_ingredients rows the user removed.
+  deletedIds: string[]
+}
+
+// Edits a logged entry down to the individual ingredient level: reconciles the
+// food_entry_ingredients rows (insert / update / delete) and rewrites the parent
+// entry's cached macro totals so the journal stays consistent.
+export function useUpdateFoodEntryWithIngredients() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      entryId,
+      meal_type,
+      notes,
+      servings,
+      totals,
+      upserts,
+      deletedIds,
+    }: UpdateEntryWithIngredientsInput) => {
+      // 1. Remove rows the user deleted.
+      if (deletedIds.length > 0) {
+        const { error } = await supabase
+          .from('food_entry_ingredients')
+          .delete()
+          .in('id', deletedIds)
+        if (error) throw error
+      }
+
+      // 2. Update existing rows.
+      for (const u of upserts.filter((r) => r.id)) {
+        const { error } = await supabase
+          .from('food_entry_ingredients')
+          .update({
+            ingredient_id: u.ingredient_id,
+            amount: u.amount,
+            unit: u.unit,
+            quantity: u.quantity,
+          })
+          .eq('id', u.id as string)
+        if (error) throw error
+      }
+
+      // 3. Insert newly added rows.
+      const inserts = upserts.filter((r) => !r.id)
+      if (inserts.length > 0) {
+        const rows: FoodEntryIngredientInsert[] = inserts.map((u) => ({
+          food_entry_id: entryId,
+          ingredient_id: u.ingredient_id,
+          amount: u.amount,
+          unit: u.unit,
+          quantity: u.quantity,
+        }))
+        const { error } = await supabase
+          .from('food_entry_ingredients')
+          .insert(rows)
+        if (error) throw error
+      }
+
+      // 4. Rewrite the parent entry's denormalised totals + metadata.
+      const { data, error } = await supabase
+        .from('food_entries')
+        .update({
+          meal_type,
+          notes,
+          servings,
+          calories: totals.calories,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+        })
+        .eq('id', entryId)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as FoodEntry
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FOOD_ENTRIES_KEY })
+    },
+  })
+}
+
 export function useDeleteFoodEntry() {
   const queryClient = useQueryClient()
 

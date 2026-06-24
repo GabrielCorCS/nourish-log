@@ -2,7 +2,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger'
+  variant?: 'primary' | 'accent' | 'secondary' | 'ghost' | 'outline' | 'danger'
   size?: 'sm' | 'md' | 'lg' | 'icon'
   isLoading?: boolean
   leftIcon?: ReactNode
@@ -35,6 +35,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       primary:
         'bg-gradient-to-b from-emerald to-emerald-dark text-white shadow-soft hover:shadow-soft-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
+      // High-visibility CTA. Warm orange pops against the all-green UI so the
+      // primary "Add / Log / New" actions are easy to spot on every page.
+      accent:
+        'bg-gradient-to-b from-[#FB923C] to-citrus text-white shadow-[0_6px_20px_-4px_rgba(249,115,22,0.55)] hover:shadow-[0_10px_28px_-6px_rgba(249,115,22,0.65)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
       secondary:
         'bg-sage/15 text-emerald-dark hover:bg-sage/25 active:scale-[0.98]',
       ghost:

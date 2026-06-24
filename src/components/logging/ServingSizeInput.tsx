@@ -2,6 +2,7 @@ import { Minus, Plus } from 'lucide-react'
 import { Textarea } from '@/components/ui'
 import { MacroDisplay } from '@/components/shared'
 import { useLogMealStore } from '@/stores'
+import { useNumericInput } from '@/hooks/useNumericInput'
 
 export function ServingSizeInput() {
   const {
@@ -18,6 +19,7 @@ export function ServingSizeInput() {
   } = useLogMealStore()
 
   const showServingsControl = source === 'recipe' && selectedRecipe
+  const servingsInput = useNumericInput(servings, setServings, { min: 0.5 })
 
   return (
     <div className="space-y-5">
@@ -35,9 +37,11 @@ export function ServingSizeInput() {
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="metric min-w-[4rem] text-center text-4xl font-bold text-espresso">
-              {servings}
-            </span>
+            <input
+              {...servingsInput}
+              aria-label="Number of servings"
+              className="metric w-24 bg-transparent text-center text-4xl font-bold text-espresso focus:outline-none"
+            />
             <button
               type="button"
               onClick={() => setServings(servings + 0.5)}

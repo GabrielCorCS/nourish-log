@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { ArrowLeft, Check } from 'lucide-react'
 import {
   Dialog,
@@ -10,7 +10,7 @@ import {
   Button,
 } from '@/components/ui'
 import { LogHub } from './LogHub'
-import { BarcodeScanView, type ScanStatus } from './BarcodeScanView'
+import type { ScanStatus } from './BarcodeScanView'
 import { ScanConfirm } from './ScanConfirm'
 import { RecipeSelector } from './RecipeSelector'
 import { IngredientSelector } from './IngredientSelector'
@@ -18,6 +18,12 @@ import { ServingSizeInput } from './ServingSizeInput'
 import { NutritionPreview } from './NutritionPreview'
 import { useLogMealStore, useUIStore, type LogStep } from '@/stores'
 import { useCreateFoodEntry } from '@/hooks'
+
+// Lazy: keeps the heavy @zxing barcode reader out of the initial bundle until
+// the user actually opens the scan step.
+const BarcodeScanView = lazy(() =>
+  import('./BarcodeScanView').then((m) => ({ default: m.BarcodeScanView }))
+)
 import { useHousehold } from '@/hooks/useHousehold'
 import { servingsEquivalent } from '@/lib/nutrition'
 import { getProductByBarcode } from '@/lib/openfoodfacts'
@@ -220,7 +226,11 @@ export function LogMealModal() {
 
         <DialogBody>
           {step === 'hub' && <LogHub />}
-          {step === 'scan' && <BarcodeScanView status={scanStatus} onDetected={handleDetected} />}
+          {step === 'scan' && (
+            <Suspense fallback={null}>
+              <BarcodeScanView status={scanStatus} onDetected={handleDetected} />
+            </Suspense>
+          )}
           {step === 'scan-confirm' && <ScanConfirm />}
           {step === 'recipe' && <RecipeSelector />}
           {step === 'ingredients' && <IngredientSelector />}

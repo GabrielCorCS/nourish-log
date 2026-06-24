@@ -32,7 +32,7 @@ export function Pantry() {
           </h1>
         </div>
         {activeTab === 'spending' && (
-          <Button onClick={() => setShowPurchaseForm(true)} leftIcon={<DollarSign className="h-4 w-4" />}>
+          <Button variant="accent" onClick={() => setShowPurchaseForm(true)} leftIcon={<DollarSign className="h-4 w-4" />}>
             Log Purchase
           </Button>
         )}

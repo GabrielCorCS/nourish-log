@@ -45,7 +45,7 @@ export function StoreList() {
         <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">
           {stores?.length ?? 0} store{(stores?.length ?? 0) !== 1 ? 's' : ''}
         </p>
-        <Button size="sm" onClick={() => setIsFormOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+        <Button variant="accent" size="sm" onClick={() => setIsFormOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
           Add Store
         </Button>
       </div>

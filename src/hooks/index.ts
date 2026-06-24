@@ -23,6 +23,7 @@ export {
   useWeeklyEntries,
   useCreateFoodEntry,
   useUpdateFoodEntry,
+  useUpdateFoodEntryWithIngredients,
   useDeleteFoodEntry,
   calculateDailyTotals,
 } from './useFoodEntries'
@@ -45,6 +46,7 @@ export {
   useCreateStore,
   useUpdateStore,
   useDeleteStore,
+  useFindOrCreateStore,
 } from './useStores'
 
 export {

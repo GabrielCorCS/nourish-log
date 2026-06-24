@@ -8,10 +8,16 @@ import {
   DialogFooter,
   Button,
   Input,
+  NumberField,
   Select,
 } from '@/components/ui'
 import { EmojiPicker } from '@/components/shared'
-import { useCreateIngredient, useUpdateIngredient, useStores } from '@/hooks'
+import {
+  useCreateIngredient,
+  useUpdateIngredient,
+  useStores,
+  useFindOrCreateStore,
+} from '@/hooks'
 import { useUIStore } from '@/stores'
 import { INGREDIENT_CATEGORIES, SERVING_UNITS } from '@/lib/constants'
 import type { Ingredient, IngredientCategory } from '@/types/database'
@@ -26,19 +32,22 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
   const createIngredient = useCreateIngredient()
   const updateIngredient = useUpdateIngredient()
   const { data: stores } = useStores()
+  const findOrCreateStore = useFindOrCreateStore()
 
   const [formData, setFormData] = useState({
     name: '',
     emoji: '',
     category: 'proteins' as IngredientCategory,
+    brand: '',
     serving_size: 100,
     serving_unit: 'g',
     calories: 0,
     protein: 0,
     carbs: 0,
     fat: 0,
-    default_store_id: '' as string,
   })
+  // Free-typed store name; resolved to a store id (find-or-create) on submit.
+  const [storeName, setStoreName] = useState('')
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -48,16 +57,24 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
         name: ingredient.name,
         emoji: ingredient.emoji || '',
         category: ingredient.category,
+        brand: ingredient.brand || '',
         serving_size: ingredient.serving_size,
         serving_unit: ingredient.serving_unit,
         calories: ingredient.calories,
         protein: ingredient.protein,
         carbs: ingredient.carbs,
         fat: ingredient.fat,
-        default_store_id: ingredient.default_store_id || '',
       })
     }
   }, [ingredient])
+
+  // Resolve the saved store's display name once the stores list is available.
+  useEffect(() => {
+    if (ingredient?.default_store_id) {
+      const match = stores?.find((s) => s.id === ingredient.default_store_id)
+      if (match) setStoreName(match.name)
+    }
+  }, [ingredient, stores])
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -82,11 +99,13 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
     if (!validate()) return
 
     try {
+      const default_store_id = await findOrCreateStore(storeName)
       const submitData = {
         ...formData,
-        default_store_id: formData.default_store_id || null,
+        brand: formData.brand.trim() || null,
+        default_store_id,
       }
-      
+
       if (ingredient) {
         await updateIngredient.mutateAsync({
           id: ingredient.id,
@@ -134,6 +153,15 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
               </div>
             </div>
 
+            <Input
+              label="Brand (optional)"
+              value={formData.brand}
+              onChange={(e) =>
+                setFormData({ ...formData, brand: e.target.value })
+              }
+              placeholder="e.g., Kirkland, Trader Joe's"
+            />
+
             <Select
               label="Category"
               value={formData.category}
@@ -149,35 +177,30 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
               }))}
             />
 
-            <Select
-              label="Default Store (optional)"
-              value={formData.default_store_id}
-              onChange={(e) =>
-                setFormData({ ...formData, default_store_id: e.target.value })
-              }
-              placeholder="Select a store..."
-              options={
-                stores?.map((s) => ({
-                  value: s.id,
-                  label: `${s.emoji || '🏪'} ${s.name}`,
-                })) || []
-              }
-            />
+            <div>
+              <Input
+                label="Default store (optional)"
+                list="ingredient-store-options"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                placeholder="Type or pick a store"
+              />
+              <datalist id="ingredient-store-options">
+                {stores?.map((s) => (
+                  <option key={s.id} value={s.name} />
+                ))}
+              </datalist>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Input
+              <NumberField
                 label="Serving Size"
-                type="number"
                 value={formData.serving_size}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    serving_size: Number(e.target.value),
-                  })
+                onChange={(v) =>
+                  setFormData({ ...formData, serving_size: v })
                 }
                 error={errors.serving_size}
                 min={0}
-                step={0.1}
               />
               <Select
                 label="Unit"
@@ -194,51 +217,30 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
                 Nutrition per serving
               </p>
               <div className="grid grid-cols-2 gap-4">
-                <Input
+                <NumberField
                   label="Calories"
-                  type="number"
                   value={formData.calories}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      calories: Number(e.target.value),
-                    })
-                  }
+                  onChange={(v) => setFormData({ ...formData, calories: v })}
                   error={errors.calories}
                   min={0}
                 />
-                <Input
+                <NumberField
                   label="Protein (g)"
-                  type="number"
                   value={formData.protein}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      protein: Number(e.target.value),
-                    })
-                  }
+                  onChange={(v) => setFormData({ ...formData, protein: v })}
                   min={0}
-                  step={0.1}
                 />
-                <Input
+                <NumberField
                   label="Carbs (g)"
-                  type="number"
                   value={formData.carbs}
-                  onChange={(e) =>
-                    setFormData({ ...formData, carbs: Number(e.target.value) })
-                  }
+                  onChange={(v) => setFormData({ ...formData, carbs: v })}
                   min={0}
-                  step={0.1}
                 />
-                <Input
+                <NumberField
                   label="Fat (g)"
-                  type="number"
                   value={formData.fat}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fat: Number(e.target.value) })
-                  }
+                  onChange={(v) => setFormData({ ...formData, fat: v })}
                   min={0}
-                  step={0.1}
                 />
               </div>
             </div>

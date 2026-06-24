@@ -128,7 +128,13 @@ export function ScanConfirm() {
       <div className="flex items-center gap-3.5 rounded-[22px] bg-warm-white p-4 ring-1 ring-latte/60">
         <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-cream text-2xl ring-1 ring-latte/50">
           {scannedProduct.image_small_url ? (
-            <img src={scannedProduct.image_small_url} alt="" className="h-full w-full object-cover" />
+            <img
+              src={scannedProduct.image_small_url}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           ) : (
             '🛒'
           )}
