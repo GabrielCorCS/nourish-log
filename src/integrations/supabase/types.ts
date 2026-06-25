@@ -639,6 +639,67 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          actor_user_id: string | null
+          body: string | null
+          created_at: string
+          data: Json | null
+          household_id: string | null
+          id: string
+          is_read: boolean
+          recipient_user_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          household_id?: string | null
+          id?: string
+          is_read?: boolean
+          recipient_user_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          household_id?: string | null
+          id?: string
+          is_read?: boolean
+          recipient_user_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_ingredients: {
         Row: {
           amount: number | null
