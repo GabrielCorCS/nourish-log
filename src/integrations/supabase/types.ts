@@ -842,6 +842,50 @@ export type Database = {
           },
         ]
       }
+      weekday_goal_overrides: {
+        Row: {
+          created_at: string
+          daily_calorie_goal: number
+          daily_carbs_goal: number
+          daily_fat_goal: number
+          daily_protein_goal: number
+          id: string
+          updated_at: string
+          user_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          daily_calorie_goal?: number
+          daily_carbs_goal?: number
+          daily_fat_goal?: number
+          daily_protein_goal?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          daily_calorie_goal?: number
+          daily_carbs_goal?: number
+          daily_fat_goal?: number
+          daily_protein_goal?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekday_goal_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wishlist_items: {
         Row: {
           created_at: string

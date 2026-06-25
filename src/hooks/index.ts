@@ -33,6 +33,10 @@ export {
   useUpdateUserSettings,
   useUserStreak,
   useGoals,
+  useWeekdayGoals,
+  useUpsertWeekdayGoal,
+  useDeleteWeekdayGoal,
+  type WeekdayGoal,
 } from './useUserSettings'
 
 export { useHousehold, useHouseholdId } from './useHousehold'

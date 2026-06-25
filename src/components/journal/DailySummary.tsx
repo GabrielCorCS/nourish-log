@@ -8,6 +8,8 @@ interface DailySummaryProps {
   carbs: number
   fat: number
   mealCount: number
+  /** The day being viewed — so weekday-specific goals apply. */
+  date?: Date
 }
 
 const MACROS = [
@@ -43,8 +45,9 @@ export function DailySummary({
   carbs,
   fat,
   mealCount,
+  date,
 }: DailySummaryProps) {
-  const { goals } = useGoals()
+  const { goals } = useGoals(date)
 
   const consumed = Math.round(calories)
   const goal = Math.round(goals.calories)

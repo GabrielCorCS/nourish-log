@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { UserPlus, Target, Home, Scale, Info, User } from 'lucide-react'
+import { UserPlus, Target, Home, Scale, Info, User, CalendarDays } from 'lucide-react'
 import { PageContainer } from '@/components/layout'
 import { Button, Input } from '@/components/ui'
 import { LoadingState } from '@/components/shared'
@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useUIStore } from '@/stores'
 import { AVATAR_EMOJIS } from '@/lib/constants'
+import { WeekdayGoalsEditor } from '@/components/settings/WeekdayGoalsEditor'
 import { cn } from '@/lib/utils'
 
 // ─── Section header ──────────────────────────────────────────────────────────
@@ -308,6 +309,11 @@ export function Settings() {
         </div>
 
         {/* ── Household tile ───────────────────────────────────────────── */}
+        <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+          <SectionHeader icon={<CalendarDays className="h-4 w-4" />} label="Day-specific goals" />
+          <WeekdayGoalsEditor />
+        </div>
+
         <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
           <SectionHeader icon={<Home className="h-4 w-4" />} label="Household" />
           <p className="mb-4 text-sm text-espresso/55">
