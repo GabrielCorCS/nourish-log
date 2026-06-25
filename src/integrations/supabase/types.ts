@@ -281,10 +281,12 @@ export type Database = {
       }
       grocery_purchases: {
         Row: {
+          card: string | null
           created_at: string
           household_id: string | null
           id: string
           ingredient_id: string | null
+          kind: string
           notes: string | null
           price: number
           purchased_at: string
@@ -294,10 +296,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          card?: string | null
           created_at?: string
           household_id?: string | null
           id?: string
           ingredient_id?: string | null
+          kind?: string
           notes?: string | null
           price?: number
           purchased_at?: string
@@ -307,10 +311,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          card?: string | null
           created_at?: string
           household_id?: string | null
           id?: string
           ingredient_id?: string | null
+          kind?: string
           notes?: string | null
           price?: number
           purchased_at?: string
@@ -692,6 +698,7 @@ export type Database = {
           emoji: string | null
           household_id: string | null
           id: string
+          kind: string
           name: string
           updated_at: string
           user_id: string
@@ -701,6 +708,7 @@ export type Database = {
           emoji?: string | null
           household_id?: string | null
           id?: string
+          kind?: string
           name: string
           updated_at?: string
           user_id: string
@@ -710,6 +718,7 @@ export type Database = {
           emoji?: string | null
           household_id?: string | null
           id?: string
+          kind?: string
           name?: string
           updated_at?: string
           user_id?: string

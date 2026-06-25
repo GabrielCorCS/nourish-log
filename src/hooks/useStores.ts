@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useHouseholdId } from '@/hooks/useHousehold'
+import type { StoreKind } from '@/lib/constants'
 
 export interface Store {
   id: string
   user_id: string
   name: string
   emoji: string | null
+  kind: StoreKind
   created_at: string
   updated_at: string
 }
@@ -16,12 +18,14 @@ export interface Store {
 export interface StoreInsert {
   name: string
   emoji?: string | null
+  kind?: StoreKind
 }
 
 export interface StoreUpdate {
   id: string
   name?: string
   emoji?: string | null
+  kind?: StoreKind
 }
 
 const STORES_KEY = ['stores']
@@ -103,7 +107,7 @@ export function useFindOrCreateStore() {
   const createStore = useCreateStore()
 
   return useCallback(
-    async (rawName: string): Promise<string | null> => {
+    async (rawName: string, kind: StoreKind = 'grocery'): Promise<string | null> => {
       const name = rawName.trim()
       if (!name) return null
 
@@ -112,7 +116,7 @@ export function useFindOrCreateStore() {
       )
       if (existing) return existing.id
 
-      const created = await createStore.mutateAsync({ name })
+      const created = await createStore.mutateAsync({ name, kind })
       return created.id
     },
     [stores, createStore]
