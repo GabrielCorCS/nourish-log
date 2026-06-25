@@ -12,6 +12,8 @@ import {
 import { EmojiPicker } from '@/components/shared'
 import { useCreateStore, useUpdateStore, type Store } from '@/hooks/useStores'
 import { useUIStore } from '@/stores'
+import { STORE_KINDS, type StoreKind } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 
 interface StoreFormProps {
   store?: Store | null
@@ -26,6 +28,7 @@ export function StoreForm({ store, onClose }: StoreFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     emoji: '🏪',
+    kind: 'grocery' as StoreKind,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -35,6 +38,7 @@ export function StoreForm({ store, onClose }: StoreFormProps) {
       setFormData({
         name: store.name,
         emoji: store.emoji || '🏪',
+        kind: store.kind ?? 'grocery',
       })
     }
   }, [store])
@@ -96,8 +100,30 @@ export function StoreForm({ store, onClose }: StoreFormProps) {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   error={errors.name}
-                  placeholder="e.g., Costco, Trader Joe's"
+                  placeholder="e.g., Costco, Target"
                 />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-1.5 text-sm font-medium text-espresso">Type</p>
+              <div className="grid grid-cols-2 gap-2">
+                {STORE_KINDS.map((k) => (
+                  <button
+                    key={k.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, kind: k.value })}
+                    className={cn(
+                      'pressable flex items-center justify-center gap-2 rounded-[12px] border py-2.5 text-sm font-semibold transition-colors',
+                      formData.kind === k.value
+                        ? 'border-emerald/30 bg-emerald/10 text-emerald-dark ring-1 ring-emerald/20'
+                        : 'border-latte text-espresso/60 hover:bg-cream'
+                    )}
+                  >
+                    <span className="text-base">{k.emoji}</span>
+                    {k.label}
+                  </button>
+                ))}
               </div>
             </div>
           </DialogBody>

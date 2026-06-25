@@ -24,10 +24,12 @@ import type { Ingredient, IngredientCategory } from '@/types/database'
 
 interface IngredientFormProps {
   ingredient?: Ingredient | null
+  /** Preselect this category when adding (the active pantry tab). */
+  defaultCategory?: IngredientCategory
   onClose: () => void
 }
 
-export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
+export function IngredientForm({ ingredient, defaultCategory, onClose }: IngredientFormProps) {
   const addToast = useUIStore((state) => state.addToast)
   const createIngredient = useCreateIngredient()
   const updateIngredient = useUpdateIngredient()
@@ -37,7 +39,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     emoji: '',
-    category: 'proteins' as IngredientCategory,
+    category: (defaultCategory ?? '') as IngredientCategory | '',
     brand: '',
     serving_size: 100,
     serving_unit: 'g',
@@ -82,6 +84,9 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required'
     }
+    if (!formData.category) {
+      newErrors.category = 'Please pick a category'
+    }
     if (formData.serving_size <= 0) {
       newErrors.serving_size = 'Serving size must be positive'
     }
@@ -102,6 +107,7 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
       const default_store_id = await findOrCreateStore(storeName)
       const submitData = {
         ...formData,
+        category: formData.category as IngredientCategory,
         brand: formData.brand.trim() || null,
         default_store_id,
       }
@@ -171,6 +177,8 @@ export function IngredientForm({ ingredient, onClose }: IngredientFormProps) {
                   category: e.target.value as IngredientCategory,
                 })
               }
+              placeholder="Select a category…"
+              error={errors.category}
               options={INGREDIENT_CATEGORIES.map((c) => ({
                 value: c.value,
                 label: `${c.emoji} ${c.label}`,

@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useHouseholdId } from '@/hooks/useHousehold'
 import type { Ingredient, IngredientCategory } from '@/types/database'
+import type { SpendingKind } from '@/lib/constants'
 import type { Store } from './useStores'
 
 export interface GroceryPurchase {
@@ -12,6 +14,8 @@ export interface GroceryPurchase {
   quantity: number
   unit: string
   price: number
+  card: string | null
+  kind: SpendingKind
   purchased_at: string
   notes: string | null
   created_at: string
@@ -25,6 +29,8 @@ export interface GroceryPurchaseInsert {
   quantity?: number
   unit?: string
   price: number
+  card?: string | null
+  kind?: SpendingKind
   purchased_at?: string
   notes?: string | null
 }
@@ -42,11 +48,20 @@ export interface GroceryPurchaseUpdate {
 
 const PURCHASES_KEY = ['grocery_purchases']
 
-export function useGroceryPurchases(dateRange?: { start: Date; end: Date }) {
+export function useGroceryPurchases(
+  dateRange?: { start: Date; end: Date },
+  kind?: SpendingKind
+) {
   const { user } = useAuth()
 
   return useQuery({
-    queryKey: [...PURCHASES_KEY, user?.id, dateRange?.start?.toISOString(), dateRange?.end?.toISOString()],
+    queryKey: [
+      ...PURCHASES_KEY,
+      user?.id,
+      kind ?? 'all',
+      dateRange?.start?.toISOString(),
+      dateRange?.end?.toISOString(),
+    ],
     queryFn: async () => {
       let query = supabase
         .from('grocery_purchases')
@@ -56,6 +71,10 @@ export function useGroceryPurchases(dateRange?: { start: Date; end: Date }) {
           store:stores(*)
         `)
         .order('purchased_at', { ascending: false })
+
+      if (kind) {
+        query = query.eq('kind', kind)
+      }
 
       if (dateRange) {
         query = query
@@ -75,14 +94,18 @@ export function useGroceryPurchases(dateRange?: { start: Date; end: Date }) {
 export function useCreateGroceryPurchase() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const householdId = useHouseholdId()
 
   return useMutation({
     mutationFn: async (purchase: GroceryPurchaseInsert) => {
       if (!user) throw new Error('Not authenticated')
+      // Household-scoped RLS requires household_id on insert (WITH CHECK) — a
+      // purchase created without it is silently rejected.
+      if (!householdId) throw new Error('No household found for the current user')
 
       const { data, error } = await supabase
         .from('grocery_purchases')
-        .insert({ ...purchase, user_id: user.id })
+        .insert({ ...purchase, user_id: user.id, household_id: householdId })
         .select()
         .single()
 
@@ -179,4 +202,19 @@ export function calculateSpendingByStore(purchases: GroceryPurchase[]): Spending
 
 export function calculateTotalSpending(purchases: GroceryPurchase[]): number {
   return purchases.reduce((sum, p) => sum + p.price, 0)
+}
+
+export interface SpendingByCard {
+  card: string | null
+  total: number
+  count: number
+}
+
+export function calculateSpendingByCard(purchases: GroceryPurchase[]): SpendingByCard[] {
+  const map = new Map<string | null, { total: number; count: number }>()
+  purchases.forEach((p) => {
+    const existing = map.get(p.card) || { total: 0, count: 0 }
+    map.set(p.card, { total: existing.total + p.price, count: existing.count + 1 })
+  })
+  return Array.from(map.entries()).map(([card, d]) => ({ card, ...d }))
 }

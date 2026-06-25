@@ -45,6 +45,60 @@ export const SERVING_UNITS = [
   'serving',
 ]
 
+// Payment cards used for spending entries. A fixed set (the household's cards);
+// selection is required on every ledger entry. Colors drive the card-face UI.
+export interface PaymentCard {
+  id: string
+  label: string
+  network: string
+  gradient: string
+  text: string
+  subtle: string
+}
+
+export const PAYMENT_CARDS: PaymentCard[] = [
+  {
+    id: 'wells_fargo',
+    label: 'Wells Fargo',
+    network: 'Visa',
+    gradient: 'from-[#C8262C] to-[#7F1417]',
+    text: 'text-white',
+    subtle: 'text-white/70',
+  },
+  {
+    id: 'discover',
+    label: 'Discover',
+    network: 'Discover',
+    gradient: 'from-[#2D6BE4] to-[#16357E]',
+    text: 'text-white',
+    subtle: 'text-white/70',
+  },
+  {
+    id: 'amex_gold',
+    label: 'Amex Gold',
+    network: 'American Express',
+    gradient: 'from-[#D9B95C] to-[#A9842B]',
+    text: 'text-[#2b2105]',
+    subtle: 'text-[#2b2105]/65',
+  },
+  {
+    id: 'business_mastercard',
+    label: 'Business Mastercard',
+    network: 'Mastercard',
+    gradient: 'from-[#22304A] to-[#0E1626]',
+    text: 'text-white',
+    subtle: 'text-white/65',
+  },
+]
+
+export const STORE_KINDS = [
+  { value: 'grocery', label: 'Grocery store', emoji: '🛒' },
+  { value: 'other', label: 'Other store', emoji: '🏬' },
+] as const
+
+export type StoreKind = (typeof STORE_KINDS)[number]['value']
+export type SpendingKind = StoreKind // 'grocery' | 'other'
+
 export const DEFAULT_GOALS = {
   calories: 2000,
   protein: 150,

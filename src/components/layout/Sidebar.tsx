@@ -7,7 +7,6 @@ import {
   TrendingUp,
   Sparkles,
   Settings,
-  UserPlus,
   Package,
   ShoppingCart,
   LogOut,
@@ -32,7 +31,7 @@ const groceryNav = [
 ]
 
 export function Sidebar() {
-  const { profile, isAdmin, signOut } = useAuth()
+  const { profile, signOut } = useAuth()
   const { data: household } = useHousehold()
   const partner = household?.partner ?? null
 
@@ -109,12 +108,6 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <div className="p-4 border-t border-latte space-y-1">
-        {isAdmin && (
-          <NavLink to="/invitations" className={linkClass}>
-            <UserPlus className="h-5 w-5" />
-            Invitations
-          </NavLink>
-        )}
         <NavLink to="/settings" className={linkClass}>
           <Settings className="h-5 w-5" />
           Settings

@@ -95,6 +95,11 @@ export function IngredientList() {
       {isFormOpen && (
         <IngredientForm
           ingredient={editingIngredient}
+          defaultCategory={
+            !editingIngredient && pantryCategory !== 'all'
+              ? pantryCategory
+              : undefined
+          }
           onClose={handleCloseForm}
         />
       )}

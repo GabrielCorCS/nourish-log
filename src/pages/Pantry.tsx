@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { PageContainer } from '@/components/layout'
-import { Button } from '@/components/ui'
-import { CategoryTabs, IngredientList, PurchaseForm } from '@/components/pantry'
+import { CategoryTabs, IngredientList } from '@/components/pantry'
 import { StoreList } from '@/components/stores'
 import { SpendingOverview } from '@/components/spending'
 import { DollarSign, ShoppingBag, Store } from 'lucide-react'
@@ -17,25 +16,17 @@ const TABS: { value: PantryTab; label: string; icon: React.ReactNode }[] = [
 
 export function Pantry() {
   const [activeTab, setActiveTab] = useState<PantryTab>('ingredients')
-  const [showPurchaseForm, setShowPurchaseForm] = useState(false)
 
   return (
     <PageContainer>
       {/* Page header */}
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">
-            Groceries
-          </p>
-          <h1 className="font-display text-display font-semibold text-espresso">
-            Pantry
-          </h1>
-        </div>
-        {activeTab === 'spending' && (
-          <Button variant="accent" onClick={() => setShowPurchaseForm(true)} leftIcon={<DollarSign className="h-4 w-4" />}>
-            Log Purchase
-          </Button>
-        )}
+      <div className="mb-6">
+        <p className="text-xs font-bold uppercase tracking-wide text-espresso/55">
+          Groceries
+        </p>
+        <h1 className="font-display text-display font-semibold text-espresso">
+          Pantry
+        </h1>
       </div>
 
       {/* Pill tab strip */}
@@ -61,7 +52,6 @@ export function Pantry() {
       {/* Tab panels */}
       {activeTab === 'ingredients' && (
         <div className="space-y-4">
-          {/* Category chip rail */}
           <div className="rounded-[22px] bg-warm-white p-4 ring-1 ring-latte/60">
             <CategoryTabs />
           </div>
@@ -72,10 +62,6 @@ export function Pantry() {
       {activeTab === 'stores' && <StoreList />}
 
       {activeTab === 'spending' && <SpendingOverview />}
-
-      {showPurchaseForm && (
-        <PurchaseForm onClose={() => setShowPurchaseForm(false)} />
-      )}
     </PageContainer>
   )
 }
