@@ -41,6 +41,18 @@ export {
 
 export { useHousehold, useHouseholdId } from './useHousehold'
 
+export {
+  useAvailabilityWindows,
+  useUpsertAvailabilityWindow,
+  useDeleteAvailabilityWindow,
+  useCalendarTasks,
+  useUpcomingTasksFor,
+  useCreateCalendarTask,
+  useDeleteCalendarTask,
+  type AvailabilityWindowRow,
+  type CalendarTask,
+} from './useSchedule'
+
 export { useInventory } from './useInventory'
 export { useShoppingList } from './useShoppingList'
 

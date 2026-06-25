@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   Home,
   BookOpen,
+  CalendarClock,
   ChefHat,
   Apple,
   TrendingUp,
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui'
 const coreNav = [
   { path: '/', label: 'Dashboard', icon: Home },
   { path: '/journal', label: 'Journal', icon: BookOpen },
+  { path: '/schedule', label: 'Schedule', icon: CalendarClock },
   { path: '/recipes', label: 'Recipes', icon: ChefHat },
   { path: '/inspo', label: 'Inspo', icon: Sparkles },
   { path: '/progress', label: 'Progress', icon: TrendingUp },

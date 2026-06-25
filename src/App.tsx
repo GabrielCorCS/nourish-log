@@ -12,6 +12,7 @@ import { Login, AuthCallback } from '@/pages'
 // Suspense boundary lives inside AppShell, so the nav/shell stays visible.
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })))
 const Journal = lazy(() => import('@/pages/Journal').then((m) => ({ default: m.Journal })))
+const Schedule = lazy(() => import('@/pages/Schedule').then((m) => ({ default: m.Schedule })))
 const Recipes = lazy(() => import('@/pages/Recipes').then((m) => ({ default: m.Recipes })))
 const RecipeDetail = lazy(() => import('@/pages/RecipeDetail').then((m) => ({ default: m.RecipeDetail })))
 const RecipeEditor = lazy(() => import('@/pages/RecipeEditor').then((m) => ({ default: m.RecipeEditor })))
@@ -58,6 +59,16 @@ function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <Journal />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/schedule"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Schedule />
                   </AppShell>
                 </ProtectedRoute>
               }

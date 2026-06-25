@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      availability_windows: {
+        Row: {
+          created_at: string
+          end_minute: number
+          household_id: string
+          id: string
+          start_minute: number
+          updated_at: string
+          user_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_minute: number
+          household_id: string
+          id?: string
+          start_minute: number
+          updated_at?: string
+          user_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_minute?: number
+          household_id?: string
+          id?: string
+          start_minute?: number
+          updated_at?: string
+          user_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_windows_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_windows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       body_metrics: {
         Row: {
           bmi: number | null
@@ -106,6 +154,73 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_tasks: {
+        Row: {
+          assignee_user_id: string
+          created_at: string
+          created_by: string | null
+          duration_minutes: number
+          household_id: string
+          id: string
+          notes: string | null
+          scheduled_end: string
+          scheduled_start: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_user_id: string
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          household_id: string
+          id?: string
+          notes?: string | null
+          scheduled_end: string
+          scheduled_start: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_user_id?: string
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          household_id?: string
+          id?: string
+          notes?: string | null
+          scheduled_end?: string
+          scheduled_start?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_tasks_assignee_user_id_fkey"
+            columns: ["assignee_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_tasks_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
         ]
