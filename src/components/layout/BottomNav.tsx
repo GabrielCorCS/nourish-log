@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, BookOpen, ChefHat, Apple, TrendingUp, Plus } from 'lucide-react'
+import { Home, BookOpen, CalendarClock, ChefHat, Apple, TrendingUp, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores'
 
@@ -9,6 +9,7 @@ import { useUIStore } from '@/stores'
 const leftItems = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/journal', label: 'Journal', icon: BookOpen },
+  { path: '/schedule', label: 'Schedule', icon: CalendarClock },
 ]
 const rightItems = [
   { path: '/recipes', label: 'Recipes', icon: ChefHat },
