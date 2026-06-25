@@ -76,6 +76,7 @@ export function DayView({ date }: DayViewProps) {
         carbs={totals.carbs}
         fat={totals.fat}
         mealCount={entries.length}
+        date={date}
       />
 
       {/* Meal-type sections — stagger cascade */}

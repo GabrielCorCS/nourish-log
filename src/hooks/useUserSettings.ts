@@ -115,17 +115,94 @@ export function useUserStreak() {
   })
 }
 
-// Goals for whoever the UI is currently viewing (follows the global toggle).
-// Note: useUserSettings (above) stays self-scoped so the Settings page always
-// edits your own goals.
-export function useGoals() {
-  const viewUserId = useViewStore((s) => s.viewUserId)
-  return useGoalsFor(viewUserId ?? undefined)
+// ── Per-weekday goal overrides ───────────────────────────────────────────────
+// Optional macro targets for specific days of the week (e.g. higher carbs on
+// training days). Stored as overrides; the base user_settings is the fallback.
+// `weekday` is JS getDay(): 0 = Sunday … 6 = Saturday.
+export interface WeekdayGoal {
+  weekday: number
+  daily_calorie_goal: number
+  daily_protein_goal: number
+  daily_carbs_goal: number
+  daily_fat_goal: number
 }
 
-// Goals for an arbitrary household member (e.g. the partner) — for showing
-// each other's daily progress against their own targets.
-export function useGoalsFor(targetUserId?: string) {
+const WEEKDAY_GOALS_KEY = ['weekday-goals']
+
+function useWeekdayOverridesFor(userId?: string) {
+  return useQuery({
+    queryKey: [...WEEKDAY_GOALS_KEY, userId],
+    queryFn: async () => {
+      if (!userId) return [] as WeekdayGoal[]
+      const { data, error } = await supabase
+        .from('weekday_goal_overrides')
+        .select(
+          'weekday, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal'
+        )
+        .eq('user_id', userId)
+      if (error) throw error
+      return (data ?? []) as WeekdayGoal[]
+    },
+    enabled: !!userId,
+  })
+}
+
+/** The current user's weekday overrides (for editing in Settings). */
+export function useWeekdayGoals() {
+  const { user } = useAuth()
+  return useWeekdayOverridesFor(user?.id)
+}
+
+export function useUpsertWeekdayGoal() {
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+  return useMutation({
+    mutationFn: async (goal: WeekdayGoal) => {
+      if (!user) throw new Error('Not authenticated')
+      const { error } = await supabase
+        .from('weekday_goal_overrides')
+        .upsert(
+          { user_id: user.id, ...goal, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id,weekday' }
+        )
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: WEEKDAY_GOALS_KEY })
+      queryClient.invalidateQueries({ queryKey: USER_SETTINGS_KEY })
+    },
+  })
+}
+
+export function useDeleteWeekdayGoal() {
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+  return useMutation({
+    mutationFn: async (weekday: number) => {
+      if (!user) throw new Error('Not authenticated')
+      const { error } = await supabase
+        .from('weekday_goal_overrides')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('weekday', weekday)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: WEEKDAY_GOALS_KEY })
+      queryClient.invalidateQueries({ queryKey: USER_SETTINGS_KEY })
+    },
+  })
+}
+
+// Goals for whoever the UI is currently viewing (follows the global toggle),
+// resolved for `date` (defaults to today) so weekday overrides apply.
+export function useGoals(date?: Date) {
+  const viewUserId = useViewStore((s) => s.viewUserId)
+  return useGoalsFor(viewUserId ?? undefined, date)
+}
+
+// Goals for an arbitrary household member (e.g. the partner), for `date`.
+export function useGoalsFor(targetUserId?: string, date?: Date) {
   const { user } = useAuth()
   const userId = targetUserId ?? user?.id
 
@@ -144,13 +221,25 @@ export function useGoalsFor(targetUserId?: string) {
     enabled: !!userId,
   })
 
-  return {
-    isLoading,
-    goals: {
-      calories: data?.daily_calorie_goal ?? DEFAULT_GOALS.calories,
-      protein: data?.daily_protein_goal ?? DEFAULT_GOALS.protein,
-      carbs: data?.daily_carbs_goal ?? DEFAULT_GOALS.carbs,
-      fat: data?.daily_fat_goal ?? DEFAULT_GOALS.fat,
-    },
+  const { data: overrides } = useWeekdayOverridesFor(userId)
+
+  const base = {
+    calories: data?.daily_calorie_goal ?? DEFAULT_GOALS.calories,
+    protein: data?.daily_protein_goal ?? DEFAULT_GOALS.protein,
+    carbs: data?.daily_carbs_goal ?? DEFAULT_GOALS.carbs,
+    fat: data?.daily_fat_goal ?? DEFAULT_GOALS.fat,
   }
+
+  const weekday = (date ?? new Date()).getDay()
+  const override = overrides?.find((o) => o.weekday === weekday)
+  const goals = override
+    ? {
+        calories: override.daily_calorie_goal,
+        protein: override.daily_protein_goal,
+        carbs: override.daily_carbs_goal,
+        fat: override.daily_fat_goal,
+      }
+    : base
+
+  return { isLoading, goals }
 }

@@ -32,6 +32,25 @@ export function BarcodeScanner({
     const reader = new BrowserMultiFormatReader(BARCODE_HINTS)
     const confirm = createBarcodeConfirmer()
 
+    // Auto-enable the torch where the platform allows it (Android Chrome).
+    // iOS Safari does not expose the camera torch to web apps, so this is a
+    // harmless no-op there.
+    const enableTorch = () => {
+      const stream = videoRef.current?.srcObject as MediaStream | null
+      const track = stream?.getVideoTracks?.()[0]
+      if (!track) return
+      const caps = track.getCapabilities?.() as
+        | (MediaTrackCapabilities & { torch?: boolean })
+        | undefined
+      if (caps?.torch) {
+        track
+          .applyConstraints({
+            advanced: [{ torch: true }],
+          } as MediaTrackConstraints & { advanced?: Array<{ torch?: boolean }> })
+          .catch(() => {})
+      }
+    }
+
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
         // Two consecutive identical reads guards against single-frame misreads.
@@ -45,6 +64,9 @@ export function BarcodeScanner({
           return
         }
         controlsRef.current = controls
+        enableTorch()
+        // The track can take a beat to be fully ready — retry once.
+        setTimeout(enableTorch, 600)
       })
       .catch((err) => {
         if (cancelled) return
