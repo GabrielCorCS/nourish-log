@@ -1,6 +1,7 @@
 import { Settings, LogOut } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface HeaderProps {
@@ -25,6 +26,7 @@ export function Header({ title }: HeaderProps) {
           <div className="h-8 w-8 rounded-full bg-sage/20 ring-1 ring-latte flex items-center justify-center text-lg">
             {profile?.avatar_emoji || '👤'}
           </div>
+          <NotificationBell />
           <Link to="/settings">
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <Settings className="h-5 w-5" />

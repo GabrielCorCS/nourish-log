@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import { LogMealModal } from '@/components/logging'
+import { useNotificationsRealtime } from '@/hooks'
 
 interface AppShellProps {
   children: ReactNode
@@ -11,6 +12,8 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation()
+  // Subscribe once here so live notifications work on every page.
+  useNotificationsRealtime()
 
   return (
     <div className="min-h-[100dvh] bg-cream">

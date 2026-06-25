@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useHousehold } from '@/hooks/useHousehold'
 import { Button } from '@/components/ui'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 
 const coreNav = [
   { path: '/', label: 'Dashboard', icon: Home },
@@ -56,6 +57,7 @@ export function Sidebar() {
         <h1 className="font-heading text-2xl font-extrabold tracking-tight text-espresso">
           NourishLog
         </h1>
+        <NotificationBell className="ml-auto" />
       </div>
 
       {/* User Info */}

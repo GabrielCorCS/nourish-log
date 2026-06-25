@@ -54,6 +54,14 @@ export {
 } from './useSchedule'
 
 export { useInventory } from './useInventory'
+
+export {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  useNotificationsRealtime,
+  type AppNotification,
+} from './useNotifications'
 export { useShoppingList } from './useShoppingList'
 
 export {
