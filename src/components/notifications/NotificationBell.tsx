@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -6,6 +7,7 @@ import {
   useNotifications,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
+  type AppNotification,
 } from '@/hooks'
 
 const TYPE_ICON: Record<string, string> = {
@@ -17,12 +19,22 @@ const TYPE_ICON: Record<string, string> = {
 
 export function NotificationBell({ className }: { className?: string }) {
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
   const { data } = useNotifications()
   const markRead = useMarkNotificationRead()
   const markAll = useMarkAllNotificationsRead()
 
   const items = data ?? []
   const unread = items.filter((n) => !n.is_read).length
+
+  const handleClick = (n: AppNotification) => {
+    if (!n.is_read) markRead.mutate(n.id)
+    // The daily report opens its full page; other types just mark read.
+    if (n.type === 'day_report') {
+      navigate(n.data?.date ? `/report/${n.data.date}` : '/report')
+      setOpen(false)
+    }
+  }
 
   return (
     <div className={cn('relative', className)}>
@@ -67,7 +79,7 @@ export function NotificationBell({ className }: { className?: string }) {
                   <button
                     key={n.id}
                     type="button"
-                    onClick={() => !n.is_read && markRead.mutate(n.id)}
+                    onClick={() => handleClick(n)}
                     className={cn(
                       'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-cream',
                       !n.is_read && 'bg-emerald/[0.04]'
@@ -90,6 +102,11 @@ export function NotificationBell({ className }: { className?: string }) {
                           )}
                         >
                           {n.body}
+                        </p>
+                      )}
+                      {n.type === 'day_report' && (
+                        <p className="mt-1 text-[11px] font-semibold text-emerald-dark">
+                          View full report →
                         </p>
                       )}
                       <p className="mt-0.5 text-[11px] text-espresso/35">

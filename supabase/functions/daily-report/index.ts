@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
       return `${s.emoji} ${s.name}: ${cal} · ${pro} · ${meals}${w}`
     }
     const body = sections.map(summaryLine).join('\n')
-    const title = `📊 Daily report · ${dateLabel}`
+    const title = `📊 Your daily report is ready · ${dateLabel}`
 
     // recipients: members with notifications not explicitly off
     const recipients = ordered.filter(
