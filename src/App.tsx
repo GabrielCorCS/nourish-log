@@ -19,6 +19,7 @@ const RecipeEditor = lazy(() => import('@/pages/RecipeEditor').then((m) => ({ de
 const Pantry = lazy(() => import('@/pages/Pantry').then((m) => ({ default: m.Pantry })))
 const Progress = lazy(() => import('@/pages/Progress').then((m) => ({ default: m.Progress })))
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })))
+const DailyReport = lazy(() => import('@/pages/DailyReport').then((m) => ({ default: m.DailyReport })))
 const Inventory = lazy(() => import('@/pages/Inventory').then((m) => ({ default: m.Inventory })))
 const ShoppingList = lazy(() => import('@/pages/ShoppingList').then((m) => ({ default: m.ShoppingList })))
 const Inspo = lazy(() => import('@/pages/Inspo').then((m) => ({ default: m.Inspo })))
@@ -169,6 +170,26 @@ function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <Settings />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/report"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <DailyReport />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/report/:date"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <DailyReport />
                   </AppShell>
                 </ProtectedRoute>
               }

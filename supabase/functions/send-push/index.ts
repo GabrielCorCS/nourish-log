@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
   }
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, privateKey)
 
-  const { recipient_user_id, title, body, type } = await req.json()
+  const { recipient_user_id, title, body, type, url } = await req.json()
   if (!recipient_user_id) {
     return new Response(JSON.stringify({ error: 'recipient_user_id required' }), {
       status: 400,
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     body: body || '',
     type: type || 'nourishlog',
     icon: TYPE_ICON[type] ?? '🌿',
-    url: '/',
+    url: url || '/',
   })
 
   let sent = 0

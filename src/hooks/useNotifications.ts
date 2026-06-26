@@ -12,6 +12,7 @@ export interface AppNotification {
   is_read: boolean
   created_at: string
   actor_user_id: string | null
+  data: { date?: string } | null
 }
 
 const NOTIF_KEY = ['notifications']
@@ -23,7 +24,7 @@ export function useNotifications() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('notifications')
-        .select('id, type, title, body, is_read, created_at, actor_user_id')
+        .select('id, type, title, body, is_read, created_at, actor_user_id, data')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
