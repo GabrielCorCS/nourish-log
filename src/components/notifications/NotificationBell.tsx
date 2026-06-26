@@ -81,7 +81,16 @@ export function NotificationBell({ className }: { className?: string }) {
                         {n.title}
                       </p>
                       {n.body && (
-                        <p className="truncate text-xs text-espresso/50">{n.body}</p>
+                        <p
+                          className={cn(
+                            'text-xs text-espresso/55',
+                            n.type === 'day_report'
+                              ? 'mt-0.5 whitespace-pre-line leading-relaxed'
+                              : 'truncate'
+                          )}
+                        >
+                          {n.body}
+                        </p>
                       )}
                       <p className="mt-0.5 text-[11px] text-espresso/35">
                         {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
