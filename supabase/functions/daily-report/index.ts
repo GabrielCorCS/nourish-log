@@ -11,7 +11,10 @@
 // Auth: custom `x-cron-key` header (verify_jwt disabled) so pg_cron can call it.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-const CRON_KEY = 'ndr-7b34e9a1c0f24d8e9b6a5c3f10e8d2b7'
+// Optional shared key gating who may invoke this function (it's verify_jwt=false).
+// When the CRON_KEY secret is unset, the check is skipped. Set it (and have the
+// pg_cron job send the same value) to lock the function down.
+const CRON_KEY = Deno.env.get('CRON_KEY')
 
 // ── timezone helpers ─────────────────────────────────────────────────────────
 function tzOffsetMs(date: Date, tz: string): number {
@@ -52,7 +55,7 @@ interface Section {
 
 // ── main ─────────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
-  if (req.headers.get('x-cron-key') !== CRON_KEY) {
+  if (CRON_KEY && req.headers.get('x-cron-key') !== CRON_KEY) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
