@@ -3,7 +3,7 @@ import { Button } from '@/components/ui'
 import { MacroPills } from '@/components/shared'
 import { formatTime } from '@/lib/dates'
 import { useHousehold } from '@/hooks/useHousehold'
-import type { FoodEntryWithDetails } from '@/types/database'
+import type { FoodEntryWithDetails, FoodEntryIngredient, Ingredient } from '@/types/database'
 
 interface MealCardProps {
   entry: FoodEntryWithDetails
@@ -11,10 +11,28 @@ interface MealCardProps {
   onDelete?: (entry: FoodEntryWithDetails) => void
 }
 
+// Human-readable amount for one logged ingredient row (e.g. "150 g", "2 servings").
+function formatAmount(row: FoodEntryIngredient): string {
+  const amount = row.amount ?? row.quantity ?? 1
+  const unit = row.unit ?? 'serving'
+  if (unit === 'g' || unit === 'ml') return `${Math.round(amount)} ${unit}`
+  const n = Math.round(amount * 100) / 100
+  return `${n} ${n === 1 ? 'serving' : 'servings'}`
+}
+
 export function MealCard({ entry, onEdit, onDelete }: MealCardProps) {
   const { data: household } = useHousehold()
-  const name = entry.recipe?.name || 'Quick add'
-  const emoji = entry.recipe?.emoji || '🍽️'
+  const ingredients = (entry.food_entry_ingredients ?? []) as (FoodEntryIngredient & {
+    ingredient: Ingredient | null
+  })[]
+  // Recipes carry their own name; ingredient-only entries are named after the
+  // ingredients they're made of (falling back to "Quick add" only when truly empty).
+  const ingredientNames = ingredients
+    .map((i) => i.ingredient?.name)
+    .filter(Boolean)
+    .join(', ')
+  const name = entry.recipe?.name || ingredientNames || 'Quick add'
+  const emoji = entry.recipe?.emoji || ingredients[0]?.ingredient?.emoji || '🍽️'
   const loggedByOther = entry.logged_by != null && entry.logged_by !== entry.user_id
   const loggerName = loggedByOther
     ? household?.members.find((m) => m.id === entry.logged_by)?.name ?? 'partner'
@@ -86,6 +104,22 @@ export function MealCard({ entry, onEdit, onDelete }: MealCardProps) {
         className="mt-3"
         hideCalories
       />
+
+      {/* Ingredients used (only for ingredient-based entries, not recipes) */}
+      {!entry.recipe && ingredients.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {ingredients.map((ing) => (
+            <span
+              key={ing.id}
+              className="inline-flex items-center gap-1 rounded-full bg-cream px-2.5 py-1 text-[11px] font-medium text-espresso/65 ring-1 ring-latte/50"
+            >
+              <span>{ing.ingredient?.emoji || '🥄'}</span>
+              <span className="text-espresso/80">{ing.ingredient?.name ?? 'Ingredient'}</span>
+              <span className="text-espresso/40">· {formatAmount(ing)}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Optional notes */}
       {entry.notes && (
