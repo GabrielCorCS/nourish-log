@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { UserPlus, Target, Home, Scale, Info, User, CalendarDays } from 'lucide-react'
+import { UserPlus, Target, Home, Scale, Info, User, CalendarDays, Bell } from 'lucide-react'
 import { PageContainer } from '@/components/layout'
 import { Button, Input } from '@/components/ui'
 import { LoadingState } from '@/components/shared'
@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useUIStore } from '@/stores'
 import { AVATAR_EMOJIS } from '@/lib/constants'
 import { WeekdayGoalsEditor } from '@/components/settings/WeekdayGoalsEditor'
+import { usePush } from '@/hooks/usePush'
 import { cn } from '@/lib/utils'
 
 // ─── Section header ──────────────────────────────────────────────────────────
@@ -41,6 +42,7 @@ export function Settings() {
   const updateSettings = useUpdateUserSettings()
 
   const { data: household } = useHousehold()
+  const push = usePush()
   const updateProfile = useUpdateProfile()
   const updateHouseholdName = useUpdateHouseholdName()
   const addPartner = useAddPartnerByEmail()
@@ -427,6 +429,47 @@ export function Settings() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* ── Notifications tile ───────────────────────────────────────── */}
+        <div className="rounded-[28px] bg-warm-white p-5 ring-1 ring-latte/60">
+          <SectionHeader icon={<Bell className="h-4 w-4" />} label="Push notifications" />
+          <p className="mb-4 text-sm text-espresso/55">
+            Get a push on this device for weigh-ins, when {household?.partner?.name ?? 'your partner'} logs
+            on your behalf, calendar additions, and your nightly report.
+          </p>
+
+          {!push.supported ? (
+            <p className="rounded-[18px] bg-cream px-4 py-3 text-sm text-espresso/55 ring-1 ring-latte/40">
+              This browser doesn't support push notifications.
+            </p>
+          ) : !push.standalone ? (
+            <p className="rounded-[18px] bg-honey/10 px-4 py-3 text-sm text-espresso/70 ring-1 ring-honey/25">
+              📲 On iPhone, add NourishLog to your Home Screen first (Share → Add to Home
+              Screen), then open it from there to turn on push.
+            </p>
+          ) : push.permission === 'denied' ? (
+            <p className="rounded-[18px] bg-terracotta/10 px-4 py-3 text-sm text-espresso/70 ring-1 ring-terracotta/25">
+              Notifications are blocked for this app in your device settings. Enable them there,
+              then come back.
+            </p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Button
+                variant={push.subscribed ? 'secondary' : 'accent'}
+                onClick={() => (push.subscribed ? push.disable() : push.enable())}
+                isLoading={push.busy}
+                leftIcon={<Bell className="h-4 w-4" />}
+              >
+                {push.subscribed ? 'Turn off on this device' : 'Enable on this device'}
+              </Button>
+              {push.subscribed && (
+                <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-dark">
+                  <span className="h-2 w-2 rounded-full bg-emerald" /> On
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── About tile ───────────────────────────────────────────────── */}
