@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { Flashlight, FlashlightOff } from 'lucide-react'
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser'
 import { BARCODE_HINTS, createBarcodeConfirmer } from '@/lib/barcode'
+import { useTorch } from '@/lib/useTorch'
 import {
   Dialog,
   DialogContent,
@@ -23,33 +25,17 @@ export function BarcodeScanner({
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<IScannerControls | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [streaming, setStreaming] = useState(false)
+  const torch = useTorch(videoRef, streaming)
 
   useEffect(() => {
     if (!open) return
 
     let cancelled = false
     setError(null)
+    setStreaming(false)
     const reader = new BrowserMultiFormatReader(BARCODE_HINTS)
     const confirm = createBarcodeConfirmer()
-
-    // Auto-enable the torch where the platform allows it (Android Chrome).
-    // iOS Safari does not expose the camera torch to web apps, so this is a
-    // harmless no-op there.
-    const enableTorch = () => {
-      const stream = videoRef.current?.srcObject as MediaStream | null
-      const track = stream?.getVideoTracks?.()[0]
-      if (!track) return
-      const caps = track.getCapabilities?.() as
-        | (MediaTrackCapabilities & { torch?: boolean })
-        | undefined
-      if (caps?.torch) {
-        track
-          .applyConstraints({
-            advanced: [{ torch: true }],
-          } as MediaTrackConstraints & { advanced?: Array<{ torch?: boolean }> })
-          .catch(() => {})
-      }
-    }
 
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
@@ -64,9 +50,7 @@ export function BarcodeScanner({
           return
         }
         controlsRef.current = controls
-        enableTorch()
-        // The track can take a beat to be fully ready — retry once.
-        setTimeout(enableTorch, 600)
+        setStreaming(true)
       })
       .catch((err) => {
         if (cancelled) return
@@ -121,6 +105,26 @@ export function BarcodeScanner({
                   muted
                   playsInline
                 />
+                {/* Flashlight toggle — only shown where the device exposes a torch */}
+                {torch.supported && (
+                  <button
+                    type="button"
+                    onClick={torch.toggle}
+                    aria-label={torch.on ? 'Turn flashlight off' : 'Turn flashlight on'}
+                    aria-pressed={torch.on}
+                    className={`absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full backdrop-blur-sm transition-colors ${
+                      torch.on
+                        ? 'bg-amber-300 text-espresso shadow-[0_0_18px_rgba(251,191,36,0.65)]'
+                        : 'bg-black/55 text-white hover:bg-black/70'
+                    }`}
+                  >
+                    {torch.on ? (
+                      <Flashlight className="h-5 w-5" />
+                    ) : (
+                      <FlashlightOff className="h-5 w-5" />
+                    )}
+                  </button>
+                )}
                 {/* Viewfinder guide */}
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div className="h-3/5 w-3/4 rounded-[16px] border-2 border-lime/70 shadow-[0_0_20px_rgba(132,204,22,0.25)]" />
