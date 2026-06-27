@@ -58,7 +58,11 @@ export function SpendingOverview() {
   const [kindFilter, setKindFilter] = useState<KindFilter>('all')
   const [formKind, setFormKind] = useState<SpendingKind | null>(null)
 
-  const dateRange = getDateRange(timePeriod)
+  // Memoize on timePeriod so the range (and the React Query key derived from it)
+  // is stable across renders. getDateRange calls new Date() for `end`/`start`, so
+  // computing it inline made the query key change every render — an infinite
+  // refetch loop that never left the loading state.
+  const dateRange = useMemo(() => getDateRange(timePeriod), [timePeriod])
   const { data: purchases, isLoading } = useGroceryPurchases(
     dateRange,
     kindFilter === 'all' ? undefined : kindFilter
