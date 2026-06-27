@@ -16,6 +16,7 @@ import { RecipeSelector } from './RecipeSelector'
 import { IngredientSelector } from './IngredientSelector'
 import { ServingSizeInput } from './ServingSizeInput'
 import { NutritionPreview } from './NutritionPreview'
+import { AICompose } from './AICompose'
 import { useLogMealStore, useUIStore, type LogStep } from '@/stores'
 import { useCreateFoodEntry } from '@/hooks'
 
@@ -33,6 +34,7 @@ const TITLES: Record<LogStep, string> = {
   'hub': 'Log food',
   'scan': 'Scan barcode',
   'scan-confirm': 'Confirm food',
+  'ai': 'Describe your meal',
   'recipe': 'Choose a recipe',
   'ingredients': 'Build your food',
   'servings': 'How much?',
@@ -116,6 +118,7 @@ export function LogMealModal() {
   const handleBack = () => {
     switch (step) {
       case 'scan':
+      case 'ai':
       case 'recipe':
       case 'ingredients':
         setStep('hub')
@@ -233,6 +236,7 @@ export function LogMealModal() {
               <BarcodeScanView status={scanStatus} onDetected={handleDetected} />
             </Suspense>
           )}
+          {step === 'ai' && <AICompose />}
           {step === 'scan-confirm' && <ScanConfirm />}
           {step === 'recipe' && <RecipeSelector />}
           {step === 'ingredients' && <IngredientSelector />}
