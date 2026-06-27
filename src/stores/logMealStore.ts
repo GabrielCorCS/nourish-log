@@ -15,6 +15,7 @@ export type LogStep =
   | 'hub'
   | 'scan'
   | 'scan-confirm'
+  | 'ai'
   | 'recipe'
   | 'ingredients'
   | 'servings'

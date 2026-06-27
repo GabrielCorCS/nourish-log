@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ScanLine, ChefHat, Carrot, RotateCcw, Star, ChevronRight } from 'lucide-react'
+import { ScanLine, ChefHat, Carrot, RotateCcw, Star, ChevronRight, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
@@ -154,6 +154,22 @@ export function LogHub() {
           <p className="text-sm text-white/65">Instant nutrition from the packet</p>
         </div>
         <ChevronRight className="relative h-5 w-5 text-white/50" />
+      </button>
+
+      {/* Describe with AI — type a sentence, Claude estimates the macros */}
+      <button
+        type="button"
+        onClick={() => setStep('ai')}
+        className="pressable flex w-full items-center gap-3 rounded-[20px] bg-gradient-to-br from-honey/[0.20] to-honey/[0.07] p-4 text-left ring-1 ring-honey/30"
+      >
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-warm-white text-[#A9791B] shadow-soft">
+          <Sparkles className="h-5 w-5" />
+        </span>
+        <div className="flex-1">
+          <p className="font-display font-semibold text-espresso">Describe with AI</p>
+          <p className="text-sm text-espresso/55">“2 eggs, toast & a banana” → macros</p>
+        </div>
+        <ChevronRight className="h-5 w-5 text-espresso/35" />
       </button>
 
       {/* Other methods */}
