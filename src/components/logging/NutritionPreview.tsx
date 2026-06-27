@@ -1,4 +1,5 @@
 import { MacroDisplay } from '@/components/shared'
+import { Input } from '@/components/ui'
 import { useLogMealStore } from '@/stores'
 import { useGoals } from '@/hooks'
 import { MEAL_TYPES } from '@/lib/constants'
@@ -10,6 +11,8 @@ export function NutritionPreview() {
     selectedIngredients,
     source,
     servings,
+    mealName,
+    setMealName,
     notes,
     totalCalories,
     totalProtein,
@@ -28,6 +31,26 @@ export function NutritionPreview() {
 
   return (
     <div className="space-y-4">
+      {/* Name this meal — required for ingredient-built ("quick-add") entries so
+          the journal shows a real title instead of the ingredient list. */}
+      {source === 'quick-add' && (
+        <div>
+          <Input
+            label="Meal name"
+            required
+            value={mealName}
+            onChange={(e) => setMealName(e.target.value)}
+            placeholder="e.g. Steak burrito bowl"
+            maxLength={80}
+          />
+          {!mealName.trim() && (
+            <p className="mt-1.5 text-xs font-medium text-terracotta">
+              Give this meal a name so it's easy to spot later.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Meal identity card */}
       <div className="flex items-start gap-3 rounded-[22px] bg-warm-white p-4 ring-1 ring-latte/60">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cream text-2xl shadow-soft ring-1 ring-latte/40">
@@ -37,7 +60,8 @@ export function NutritionPreview() {
           <p className="font-display font-semibold text-espresso">
             {source === 'recipe'
               ? selectedRecipe?.name
-              : `${selectedIngredients.length} ingredient${selectedIngredients.length !== 1 ? 's' : ''}`}
+              : mealName.trim() ||
+                `${selectedIngredients.length} ingredient${selectedIngredients.length !== 1 ? 's' : ''}`}
           </p>
           <p className="metric text-sm text-espresso/50">
             {mealInfo?.emoji} {mealInfo?.label}

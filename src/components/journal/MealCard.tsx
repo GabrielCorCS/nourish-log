@@ -31,7 +31,7 @@ export function MealCard({ entry, onEdit, onDelete }: MealCardProps) {
     .map((i) => i.ingredient?.name)
     .filter(Boolean)
     .join(', ')
-  const name = entry.recipe?.name || ingredientNames || 'Quick add'
+  const name = entry.recipe?.name || entry.title || ingredientNames || 'Quick add'
   const emoji = entry.recipe?.emoji || ingredients[0]?.ingredient?.emoji || '🍽️'
   const loggedByOther = entry.logged_by != null && entry.logged_by !== entry.user_id
   const loggerName = loggedByOther

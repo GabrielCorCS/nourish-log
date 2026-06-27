@@ -167,6 +167,7 @@ export function useUpdateFoodEntry() {
 interface UpdateEntryWithIngredientsInput {
   entryId: string
   meal_type: FoodEntry['meal_type']
+  title: string | null
   notes: string | null
   servings: number
   totals: { calories: number; protein: number; carbs: number; fat: number }
@@ -193,6 +194,7 @@ export function useUpdateFoodEntryWithIngredients() {
     mutationFn: async ({
       entryId,
       meal_type,
+      title,
       notes,
       servings,
       totals,
@@ -243,6 +245,7 @@ export function useUpdateFoodEntryWithIngredients() {
         .from('food_entries')
         .update({
           meal_type,
+          title,
           notes,
           servings,
           calories: totals.calories,

@@ -38,6 +38,8 @@ interface LogMealStore {
   selectedRecipe: Recipe | null
   selectedIngredients: SelectedIngredient[]
   servings: number
+  // Custom name for an ingredient-built ("quick-add") meal — required by the UI.
+  mealName: string
   notes: string
   // Proxy logging: whose log this entry belongs to (null = the current user)
   subjectUserId: string | null
@@ -66,6 +68,7 @@ interface LogMealStore {
   ) => void
   removeIngredient: (ingredientId: string) => void
   setServings: (servings: number) => void
+  setMealName: (mealName: string) => void
   setNotes: (notes: string) => void
   setSubject: (subjectUserId: string | null) => void
   calculateTotals: () => void
@@ -80,6 +83,7 @@ function freshState() {
     selectedRecipe: null,
     selectedIngredients: [] as SelectedIngredient[],
     servings: 1,
+    mealName: '',
     notes: '',
     subjectUserId: null as string | null,
     scannedProduct: null as OffProduct | null,
@@ -182,6 +186,8 @@ export const useLogMealStore = create<LogMealStore>((set, get) => ({
       })
     }
   },
+
+  setMealName: (mealName) => set({ mealName }),
 
   setNotes: (notes) => set({ notes }),
 

@@ -55,6 +55,7 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
 
   const [mealType, setMealType] = useState<MealType>('breakfast')
   const [servings, setServings] = useState(1)
+  const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
   const [rows, setRows] = useState<EditRow[]>([])
   const [removedIds, setRemovedIds] = useState<string[]>([])
@@ -63,6 +64,7 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
     if (!entry) return
     setMealType(entry.meal_type)
     setServings(entry.servings || 1)
+    setTitle(entry.title ?? '')
     setNotes(entry.notes ?? '')
     setRemovedIds([])
     setRows(
@@ -168,6 +170,7 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
         await updateWithIngredients.mutateAsync({
           entryId: entry.id,
           meal_type: mealType,
+          title: title.trim() || null,
           notes: notes || null,
           servings: 1,
           totals: ingredientTotals,
@@ -183,6 +186,8 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
           protein: scaled.protein,
           carbs: scaled.carbs,
           fat: scaled.fat,
+          // Recipes keep their own name; only custom entries store a title.
+          title: entry.recipe ? null : title.trim() || null,
           notes: notes || null,
         })
       }
@@ -205,7 +210,7 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
             </span>
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate">
-                {entry.recipe?.name || 'Quick add'}
+                {entry.recipe?.name || title || 'Quick add'}
               </DialogTitle>
               <p className="metric mt-0.5 text-xs text-espresso/45">
                 {Math.round(display.calories)} kcal
@@ -219,6 +224,18 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
 
         <DialogBody>
           <div className="space-y-5">
+            {/* Meal name — for ingredient/quick-add entries (recipes use their own name) */}
+            {!entry.recipe && (
+              <Input
+                label="Meal name"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Steak burrito bowl"
+                maxLength={80}
+              />
+            )}
+
             {/* Meal type selector */}
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-espresso/55">
@@ -423,7 +440,9 @@ export function EditMealModal({ entry, onClose }: EditMealModalProps) {
           <Button
             onClick={handleSave}
             isLoading={isSaving}
-            disabled={ingredientMode && rows.length === 0}
+            disabled={
+              (ingredientMode && rows.length === 0) || (!entry.recipe && !title.trim())
+            }
             leftIcon={<Check className="h-4 w-4" />}
           >
             Save changes
