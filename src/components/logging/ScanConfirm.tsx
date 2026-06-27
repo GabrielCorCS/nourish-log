@@ -95,6 +95,7 @@ export function ScanConfirm() {
           protein: Math.round(nutrition.protein),
           carbs: Math.round(nutrition.carbs),
           fat: Math.round(nutrition.fat),
+          title: name,
           notes: measureNote ? `${baseNote} · ${measureNote}` : baseNote,
         },
         subjectUserId: subjectUserId ?? undefined,

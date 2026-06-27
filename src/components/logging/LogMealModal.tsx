@@ -54,6 +54,7 @@ export function LogMealModal() {
     selectedRecipe,
     selectedIngredients,
     servings,
+    mealName,
     notes,
     subjectUserId,
     setSubject,
@@ -147,6 +148,7 @@ export function LogMealModal() {
           protein: totalProtein,
           carbs: totalCarbs,
           fat: totalFat,
+          title: source === 'quick-add' ? mealName.trim() || null : null,
           notes: notes || null,
         },
         ingredients:
@@ -244,6 +246,7 @@ export function LogMealModal() {
               <Button
                 onClick={handleSubmit}
                 isLoading={createFoodEntry.isPending}
+                disabled={source === 'quick-add' && !mealName.trim()}
                 leftIcon={<Check className="h-4 w-4" />}
                 className="w-full sm:w-auto"
               >

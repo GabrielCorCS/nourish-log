@@ -239,6 +239,7 @@ export type Database = {
           protein: number
           recipe_id: string | null
           servings: number
+          title: string | null
           updated_at: string
           user_id: string
         }
@@ -255,6 +256,7 @@ export type Database = {
           protein?: number
           recipe_id?: string | null
           servings?: number
+          title?: string | null
           updated_at?: string
           user_id: string
         }
@@ -271,6 +273,7 @@ export type Database = {
           protein?: number
           recipe_id?: string | null
           servings?: number
+          title?: string | null
           updated_at?: string
           user_id?: string
         }
