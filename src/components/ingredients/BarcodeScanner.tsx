@@ -31,8 +31,8 @@ export function BarcodeScanner({
   const addToast = useUIStore((s) => s.addToast)
 
   const handleTorch = async () => {
-    const ok = await torch.toggle()
-    if (!ok) addToast("This device won't let the web app control the flashlight", 'error')
+    const { ok, message } = await torch.toggle()
+    if (!ok && message) addToast(message, 'error')
   }
 
   useEffect(() => {
