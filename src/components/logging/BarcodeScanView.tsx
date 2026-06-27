@@ -3,6 +3,7 @@ import { Flashlight, FlashlightOff } from 'lucide-react'
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser'
 import { BARCODE_HINTS, createBarcodeConfirmer } from '@/lib/barcode'
 import { useTorch } from '@/lib/useTorch'
+import { useUIStore } from '@/stores'
 
 export type ScanStatus = 'searching' | 'reading' | 'found' | 'error'
 
@@ -46,6 +47,12 @@ export function BarcodeScanView({ onDetected, status = 'searching' }: BarcodeSca
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [streaming, setStreaming] = useState(false)
   const torch = useTorch(videoRef, streaming)
+  const addToast = useUIStore((s) => s.addToast)
+
+  const handleTorch = async () => {
+    const ok = await torch.toggle()
+    if (!ok) addToast("This device won't let the web app control the flashlight", 'error')
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -107,11 +114,12 @@ export function BarcodeScanView({ onDetected, status = 'searching' }: BarcodeSca
         {/* Dim everything except the guide box */}
         <div className="pointer-events-none absolute inset-0 bg-black/35" />
 
-        {/* Flashlight toggle — only shown where the device exposes a torch */}
-        {torch.supported && (
+        {/* Flashlight toggle — shown while the camera is live (hidden on iOS,
+            which can't control the torch from the web at all). */}
+        {streaming && !torch.blocked && (
           <button
             type="button"
-            onClick={torch.toggle}
+            onClick={handleTorch}
             aria-label={torch.on ? 'Turn flashlight off' : 'Turn flashlight on'}
             aria-pressed={torch.on}
             className={`absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full backdrop-blur-sm transition-colors ${
