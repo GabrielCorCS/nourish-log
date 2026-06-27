@@ -39,7 +39,7 @@ export function useTorch(
     return (stream?.getVideoTracks?.()[0] as TorchTrack) ?? null
   }, [videoRef])
 
-  // Returns true if the torch ended up in the requested state.
+  // Returns true only if the torch actually ended up in the requested state.
   const apply = useCallback(
     async (value: boolean): Promise<boolean> => {
       const track = getTrack()
@@ -48,28 +48,48 @@ export function useTorch(
         await track.applyConstraints({
           advanced: [{ torch: value }],
         } as MediaTrackConstraints & { advanced?: Array<{ torch?: boolean }> })
-        // `advanced` constraints never reject, so confirm via settings when the
-        // browser reports it; if it doesn't report torch at all, assume success.
-        const settings = track.getSettings?.() as
-          | (MediaTrackSettings & { torch?: boolean })
-          | undefined
-        const actual = settings?.torch
-        const ok = actual === undefined ? true : actual === value
-        setOn(value && ok)
-        return value ? ok : true
       } catch {
         return false
       }
+      // `advanced` torch constraints never reject — they silently no-op on
+      // devices that can't do it. So we must CONFIRM rather than assume:
+      //  - prefer getSettings().torch (Chrome reports the real state)
+      //  - else, for turning on, only trust it if the capability is advertised
+      const settings = track.getSettings?.() as
+        | (MediaTrackSettings & { torch?: boolean })
+        | undefined
+      const caps = track.getCapabilities?.() as
+        | (MediaTrackCapabilities & { torch?: boolean })
+        | undefined
+      let confirmed: boolean
+      if (settings?.torch !== undefined) confirmed = settings.torch === value
+      else if (!value) confirmed = true // turning off is always fine
+      else confirmed = !!caps?.torch
+      setOn(value && confirmed)
+      return confirmed
     },
     [getTrack],
   )
 
-  const toggle = useCallback(async (): Promise<boolean> => {
+  const toggle = useCallback(async (): Promise<{ ok: boolean; message?: string }> => {
     const target = !onRef.current
+    const track = getTrack()
+    const caps = track?.getCapabilities?.() as
+      | (MediaTrackCapabilities & { torch?: boolean })
+      | undefined
+    const hadCapability = !!caps?.torch
     const ok = await apply(target)
     if (ok && target) setSupported(true)
-    return target ? ok : true
-  }, [apply])
+    if (target && !ok) {
+      return {
+        ok: false,
+        message: hadCapability
+          ? "The flashlight didn't respond — try tapping again."
+          : "This phone's browser won't let a web app use the flashlight.",
+      }
+    }
+    return { ok: true }
+  }, [apply, getTrack])
 
   // Once the camera is live, detect torch capability and auto-enable it.
   useEffect(() => {
